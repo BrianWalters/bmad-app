@@ -2,6 +2,7 @@
 import { sessionManager } from "../../auth";
 import { getSessionCookieConfig } from "../../auth/session";
 import { validateCsrfToken } from "../../auth/csrf";
+import { getAllUnits } from "../../data/repo/unit-repository";
 
 const session = Astro.locals.session!;
 
@@ -17,12 +18,15 @@ if (Astro.request.method === "POST") {
     return Astro.redirect("/admin/login");
   }
 }
+
+const units = getAllUnits();
 ---
 
 <html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width" />
+    <link rel="stylesheet" href="/styles.css" />
     <title>Admin Dashboard - aine-program</title>
   </head>
   <body>
@@ -34,9 +38,25 @@ if (Astro.request.method === "POST") {
         <button type="submit">Log Out</button>
       </form>
     </header>
-    <main>
+    <main class="page">
       <h1>Admin Dashboard</h1>
-      <p>Welcome, {session.username}. Unit management will be available in a future story.</p>
+
+      <section>
+        <h2>Units</h2>
+        <p><a href="/admin/units/new">Create New Unit</a></p>
+
+        {units.length === 0 ? (
+          <p>No units yet. <a href="/admin/units/new">Create one now.</a></p>
+        ) : (
+          <ul>
+            {units.map((u) => (
+              <li>
+                <a href={`/admin/units/${u.id}/edit`}>{u.name}</a>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
     </main>
   </body>
 </html>

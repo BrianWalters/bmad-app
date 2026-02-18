@@ -1,4 +1,10 @@
-import { sqliteTable, text, integer, index } from "drizzle-orm/sqlite-core";
+import {
+  sqliteTable,
+  text,
+  integer,
+  index,
+  primaryKey,
+} from "drizzle-orm/sqlite-core";
 import { sql } from "drizzle-orm";
 
 export const adminUser = sqliteTable("admin_user", {
@@ -24,7 +30,40 @@ export const session = sqliteTable(
       .notNull()
       .default(sql`(datetime('now'))`),
   },
-  (table) => [
-    index("idx_session_expires_at").on(table.expiresAt),
-  ],
+  (table) => [index("idx_session_expires_at").on(table.expiresAt)],
+);
+
+export const unit = sqliteTable("unit", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  name: text("name").notNull(),
+  slug: text("slug").notNull().unique(),
+  movement: integer("movement").notNull(),
+  toughness: integer("toughness").notNull(),
+  save: integer("save").notNull(),
+  wounds: integer("wounds").notNull(),
+  leadership: text("leadership").notNull(),
+  objectiveControl: integer("objective_control").notNull(),
+  invulnerabilitySave: integer("invulnerability_save").notNull(),
+  description: text("description"),
+  createdAt: text("created_at")
+    .notNull()
+    .default(sql`(datetime('now'))`),
+});
+
+export const keyword = sqliteTable("keyword", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  name: text("name").notNull().unique(),
+});
+
+export const unitKeyword = sqliteTable(
+  "unit_keyword",
+  {
+    unitId: integer("unit_id")
+      .notNull()
+      .references(() => unit.id),
+    keywordId: integer("keyword_id")
+      .notNull()
+      .references(() => keyword.id),
+  },
+  (table) => [primaryKey({ columns: [table.unitId, table.keywordId] })],
 );

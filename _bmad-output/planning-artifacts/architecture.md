@@ -338,10 +338,15 @@ cd aine-program && npx astro add node
 - Variables: **camelCase** — `unitCount`, `isAuthenticated`, `csrfToken`
 - Zod schemas: **camelCase with `Schema` suffix** — `unitSchema`, `loginSchema`, `equipmentOptionSchema`
 
+**Import Conventions:**
+- Always use the `@/` path alias for imports — never relative paths like `../../`
+- `@/` maps to `src/` (configured in `tsconfig.json`)
+- Examples: `import { db } from "@/data/orm/connection"`, `import { findUnitBySlug } from "@/data/repo/unit-repository"`
+
 **File Naming Conventions:**
 - Astro components: **PascalCase** — `UnitCard.astro`, `Breadcrumb.astro`, `SearchForm.astro`
 - Astro pages: **lowercase/kebab-case** (Astro routing convention) — `index.astro`, `[slug].astro`, `search.astro`
-- TypeScript modules: **kebab-case** — `session.ts`, `csrf.ts`, `schema.ts`, `queries.ts`
+- TypeScript modules: **kebab-case** — `session.ts`, `csrf.ts`, `schema.ts`, `unit-repository.ts`
 - Test files: **same name with `.test.ts` suffix** — `session.test.ts`, `schema.test.ts`
 - Config files: **standard names** — `astro.config.mjs`, `drizzle.config.ts`, `vitest.config.ts`
 
@@ -351,7 +356,8 @@ cd aine-program && npx astro add node
 - `src/components/` — flat directory for all Astro components (PascalCase files)
 - `src/layouts/` — shared page layouts (base HTML shell with header, footer)
 - `src/pages/` — file-based routing (Astro convention)
-- `src/data/orm/` — Drizzle schema definitions, database connection, query functions
+- `src/data/orm/` — Drizzle schema definitions and database connection
+- `src/data/repo/` — Domain-specific repository modules for read-only data access (one file per domain entity, queries defined inline)
 - `src/data/validation/` — Zod schemas for form validation
 - `src/auth/` — session management, CSRF token logic, auth middleware
 - `public/` — static assets served as-is
@@ -361,6 +367,7 @@ cd aine-program && npx astro add node
 **Test Organization:**
 - Unit/integration tests: **co-located** with the module they test
   - `src/data/orm/schema.ts` → `src/data/orm/schema.test.ts`
+  - `src/data/repo/unit-repository.ts` → `src/data/repo/unit-repository.test.ts`
   - `src/auth/session.ts` → `src/auth/session.test.ts`
   - `src/data/validation/unit.ts` → `src/data/validation/unit.test.ts`
 - End-to-end tests: **`e2e/` directory in project root**
@@ -445,6 +452,7 @@ All `/admin/*` routes (except `/admin/login`) are protected by the same middlewa
 - Putting Playwright tests in `src/` or co-locating them with pages
 - Using kebab-case for component file names (`unit-card.astro` instead of `UnitCard.astro`)
 - Skipping CSRF validation on any POST handler
+- Using relative import paths (`../../data/orm/connection`) instead of the `@/` alias (`@/data/orm/connection`)
 
 ## Project Structure & Boundaries
 
@@ -493,10 +501,12 @@ aine-program/
 │   │   │   ├── connection.ts
 │   │   │   ├── schema.ts
 │   │   │   ├── schema.test.ts
-│   │   │   ├── queries.ts
-│   │   │   ├── queries.test.ts
 │   │   │   ├── slugify.ts
 │   │   │   └── slugify.test.ts
+│   │   ├── repo/
+│   │   │   ├── unit-repository.ts
+│   │   │   ├── unit-repository.test.ts
+│   │   │   └── user-repository.ts
 │   │   └── validation/
 │   │       ├── unit.ts
 │   │       ├── unit.test.ts
@@ -532,9 +542,10 @@ aine-program/
 - `src/middleware.ts` enforces this boundary: checks session on `/admin/*` routes, skips `/admin/login`
 
 **Data Access Boundary:**
-- `src/data/orm/` is the ONLY module that touches the database
-- Pages and components NEVER import `drizzle-orm` or `better-sqlite3` directly
-- All database operations go through functions exported from `src/data/orm/queries.ts`
+- `src/data/orm/` owns schema definitions and the database connection — nothing else touches `drizzle-orm` or `better-sqlite3` directly
+- `src/data/repo/` contains domain-specific repository modules for all read-only data access (e.g., `unit-repository.ts`, `user-repository.ts`)
+- Each repository module encapsulates its own queries — there is no centralized `queries.ts`
+- Pages and components import repository functions for reads and `src/data/orm/` utilities for writes
 - `src/data/orm/connection.ts` creates and exports the single Drizzle database instance
 
 **Validation Boundary:**
@@ -609,7 +620,8 @@ Browser Request
     → src/pages/*.astro (route handler)
         → src/auth/csrf.ts (validate on POST)
         → src/data/validation/*.ts (validate form input with Zod)
-        → src/data/orm/queries.ts (read/write database)
+        → src/data/repo/*-repository.ts (read-only queries)
+        → src/data/orm/ (write operations)
             → src/data/orm/connection.ts (Drizzle instance)
                 → SQLite file (./data/sqlite.db)
     → src/layouts/Base.astro (HTML shell, header, footer)
@@ -650,7 +662,7 @@ File-based routing maps 1:1 to the URL structure. `src/data/orm/` as the sole DB
 | Unit Browsing | FR1-FR3 | `index.astro`, `UnitCard.astro`, `[slug].astro`, `SiteHeader.astro`, `Breadcrumb.astro` |
 | Unit Search | FR4-FR8 | `SearchForm.astro`, `search.astro`, no-results handling |
 | Unit Details | FR9-FR13 | `[slug].astro` with model/equipment hierarchy display |
-| Unit Administration | FR14-FR23 | Admin pages + Zod validation + `queries.ts` CRUD functions |
+| Unit Administration | FR14-FR23 | Admin pages + Zod validation + `data/repo/` repository functions |
 | Authentication | FR24-FR26 | `middleware.ts`, `session.ts`, `login.astro` |
 
 **Non-Functional Requirements Coverage:**

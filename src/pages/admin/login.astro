@@ -60,10 +60,11 @@ if (Astro.request.method === "POST") {
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width" />
+    <link rel="stylesheet" href="/styles.css" />
     <title>Admin Login - aine-program</title>
   </head>
   <body>
-    <main>
+    <main class="page">
       <h1>Admin Login</h1>
 
       {errors.form && <p class="admin-form__error" role="alert">{errors.form}</p>}
@@ -72,11 +73,12 @@ if (Astro.request.method === "POST") {
         <input type="hidden" name="_csrf" value={formCsrfToken} />
 
         <div class="admin-form__field">
-          <label for="username">Username</label>
+          <label for="username" class="admin-form__label">Username</label>
           <input
             id="username"
             name="username"
             type="text"
+            class="admin-form__input"
             value={formData.username ?? ""}
             autocomplete="username"
             aria-describedby={errors.username ? "username-error" : undefined}
@@ -87,11 +89,12 @@ if (Astro.request.method === "POST") {
         </div>
 
         <div class="admin-form__field">
-          <label for="password">Password</label>
+          <label for="password" class="admin-form__label">Password</label>
           <input
             id="password"
             name="password"
             type="password"
+            class="admin-form__input"
             autocomplete="current-password"
             aria-describedby={errors.password ? "password-error" : undefined}
           />
@@ -100,7 +103,7 @@ if (Astro.request.method === "POST") {
           )}
         </div>
 
-        <button type="submit">Log In</button>
+        <button type="submit" class="admin-form__submit">Log In</button>
       </form>
     </main>
   </body>

@@ -1,15 +1,7 @@
 import { defineMiddleware } from "astro:middleware";
 import { sessionManager } from "./auth";
-import { runMigrations } from "./data/orm/connection";
-
-let migrated = false;
 
 export const onRequest = defineMiddleware(async (context, next) => {
-  if (!migrated) {
-    runMigrations();
-    migrated = true;
-  }
-
   const { pathname } = context.url;
 
   const isAdminRoute = pathname.startsWith("/admin");
