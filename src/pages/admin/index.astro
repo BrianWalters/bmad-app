@@ -1,0 +1,42 @@
+---
+import { sessionManager } from "../../auth";
+import { getSessionCookieConfig } from "../../auth/session";
+import { validateCsrfToken } from "../../auth/csrf";
+
+const session = Astro.locals.session!;
+
+if (Astro.request.method === "POST") {
+  const data = await Astro.request.formData();
+  const action = data.get("action")?.toString();
+  const submittedCsrf = data.get("_csrf")?.toString() ?? "";
+
+  if (action === "logout" && validateCsrfToken(session.csrfToken, submittedCsrf)) {
+    sessionManager.destroySession(session.sessionId);
+    const cookieConfig = getSessionCookieConfig(import.meta.env.PROD);
+    Astro.cookies.delete(cookieConfig.name, { path: cookieConfig.path });
+    return Astro.redirect("/admin/login");
+  }
+}
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Admin Dashboard - aine-program</title>
+  </head>
+  <body>
+    <header>
+      <p>Logged in as <strong>{session.username}</strong></p>
+      <form method="POST" style="display:inline">
+        <input type="hidden" name="_csrf" value={session.csrfToken} />
+        <input type="hidden" name="action" value="logout" />
+        <button type="submit">Log Out</button>
+      </form>
+    </header>
+    <main>
+      <h1>Admin Dashboard</h1>
+      <p>Welcome, {session.username}. Unit management will be available in a future story.</p>
+    </main>
+  </body>
+</html>

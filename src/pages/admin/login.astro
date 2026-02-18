@@ -1,0 +1,107 @@
+---
+import { loginSchema } from "../../data/validation/login";
+import { validateCsrfToken } from "../../auth/csrf";
+import { sessionManager } from "../../auth";
+import { verifyPassword, getSessionCookieConfig } from "../../auth/session";
+import { findUserByUsername } from "../../data/repo/user-repository";
+
+let errors: Record<string, string> = {};
+let formData: Record<string, string> = {};
+// CSRF is only validated when an existing session is present; on first login there is no session
+let formCsrfToken = Astro.locals.session?.csrfToken ?? "";
+
+if (Astro.request.method === "POST") {
+  const data = await Astro.request.formData();
+  const rawUsername = data.get("username")?.toString() ?? "";
+  const rawPassword = data.get("password")?.toString() ?? "";
+  const submittedCsrf = data.get("_csrf")?.toString() ?? "";
+
+  formData = { username: rawUsername };
+
+  if (Astro.locals.session && !validateCsrfToken(Astro.locals.session.csrfToken, submittedCsrf)) {
+    errors.form = "Invalid form submission. Please try again.";
+  } else {
+    const result = loginSchema.safeParse({
+      username: rawUsername,
+      password: rawPassword,
+    });
+
+    if (!result.success) {
+      for (const issue of result.error.issues) {
+        const field = issue.path[0]?.toString();
+        if (field) errors[field] = issue.message;
+      }
+    } else {
+      const user = findUserByUsername(result.data.username);
+
+      if (!user || !(await verifyPassword(result.data.password, user.passwordHash))) {
+        errors.form = "Invalid username or password";
+      } else {
+        const { sessionId, csrfToken } = sessionManager.createSession(user.id);
+        const isProduction = import.meta.env.PROD;
+        const cookieConfig = getSessionCookieConfig(isProduction);
+
+        Astro.cookies.set(cookieConfig.name, sessionId, {
+          httpOnly: cookieConfig.httpOnly,
+          sameSite: cookieConfig.sameSite,
+          secure: cookieConfig.secure,
+          path: cookieConfig.path,
+          maxAge: cookieConfig.maxAge,
+        });
+
+        return Astro.redirect("/admin");
+      }
+    }
+  }
+}
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Admin Login - aine-program</title>
+  </head>
+  <body>
+    <main>
+      <h1>Admin Login</h1>
+
+      {errors.form && <p class="admin-form__error" role="alert">{errors.form}</p>}
+
+      <form method="POST" class="admin-form">
+        <input type="hidden" name="_csrf" value={formCsrfToken} />
+
+        <div class="admin-form__field">
+          <label for="username">Username</label>
+          <input
+            id="username"
+            name="username"
+            type="text"
+            value={formData.username ?? ""}
+            autocomplete="username"
+            aria-describedby={errors.username ? "username-error" : undefined}
+          />
+          {errors.username && (
+            <p id="username-error" class="admin-form__error">{errors.username}</p>
+          )}
+        </div>
+
+        <div class="admin-form__field">
+          <label for="password">Password</label>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            autocomplete="current-password"
+            aria-describedby={errors.password ? "password-error" : undefined}
+          />
+          {errors.password && (
+            <p id="password-error" class="admin-form__error">{errors.password}</p>
+          )}
+        </div>
+
+        <button type="submit">Log In</button>
+      </form>
+    </main>
+  </body>
+</html>
