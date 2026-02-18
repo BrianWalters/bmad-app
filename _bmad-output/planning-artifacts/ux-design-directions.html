@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aine Program — UX Design Direction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="ux-design-directions.css">
+</head>
+<body>
+
+<nav class="mockup-nav">
+  <span class="mockup-nav__label">Page:</span>
+  <button class="active" onclick="show('index')">Index</button>
+  <button onclick="show('search')">Search Results</button>
+  <button onclick="show('detail')">Unit Detail</button>
+  <button onclick="show('admin')">Admin (Edit Unit)</button>
+</nav>
+
+<!-- INDEX PAGE -->
+<div id="index" class="mockup-page active">
+<div class="page">
+  <header class="page__header">
+    <h1 class="page__title">Aine Program</h1>
+    <nav class="page__nav"><a href="#">Home</a></nav>
+  </header>
+
+  <div class="section">
+    <form class="search-form">
+      <input type="search" class="search-form__input" placeholder="Search units by name...">
+    </form>
+  </div>
+
+  <div class="section">
+    <div class="unit-grid">
+      <div class="unit-card">
+        <div class="unit-card__name"><a href="#">Bloodreavers</a></div>
+        <div class="unit-card__summary">Frenzied mortal warriors who fight with reckless abandon. Battleline unit, 10-20 models.</div>
+      </div>
+      <div class="unit-card">
+        <div class="unit-card__name"><a href="#">Chaos Warriors</a></div>
+        <div class="unit-card__summary">Heavily armored chosen of the Dark Gods. Elite infantry, 5-15 models.</div>
+      </div>
+      <div class="unit-card">
+        <div class="unit-card__name"><a href="#">Daemon Prince</a></div>
+        <div class="unit-card__summary">A mortal champion ascended to daemonhood. Single model hero with multiple weapon options.</div>
+      </div>
+      <div class="unit-card">
+        <div class="unit-card__name"><a href="#">Exalted Hero</a></div>
+        <div class="unit-card__summary">A battle-hardened champion of Chaos. Single model hero, various equipment loadouts.</div>
+      </div>
+      <div class="unit-card">
+        <div class="unit-card__name"><a href="#">Flesh Hounds</a></div>
+        <div class="unit-card__summary">Daemonic hunting beasts of Khorne. Fast-moving pack unit, 5-10 models.</div>
+      </div>
+      <div class="unit-card">
+        <div class="unit-card__name"><a href="#">Gorebeast Chariot</a></div>
+        <div class="unit-card__summary">A massive chariot pulled by a raging gorebeast. Single model war machine.</div>
+      </div>
+      <div class="unit-card">
+        <div class="unit-card__name"><a href="#">Khorgorath</a></div>
+        <div class="unit-card__summary">A terrifying beast of Khorne, all muscle and fury. Monster, 1 model.</div>
+      </div>
+      <div class="unit-card">
+        <div class="unit-card__name"><a href="#">Mighty Lord of Khorne</a></div>
+        <div class="unit-card__summary">A warlord blessed by Khorne himself. Hero, single model with unique abilities.</div>
+      </div>
+      <div class="unit-card">
+        <div class="unit-card__name"><a href="#">Skullcrushers</a></div>
+        <div class="unit-card__summary">Chaos Knights riding Juggernauts of Khorne. Heavy cavalry, 3-6 models.</div>
+      </div>
+      <div class="unit-card">
+        <div class="unit-card__name"><a href="#">Wrathmongers</a></div>
+        <div class="unit-card__summary">Berserker elite consumed by rage. Elite infantry, 5 models.</div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- SEARCH RESULTS PAGE -->
+<div id="search" class="mockup-page">
+<div class="page">
+  <header class="page__header">
+    <h1 class="page__title">Aine Program</h1>
+    <nav class="page__nav"><a href="#">Home</a></nav>
+  </header>
+
+  <div class="section">
+    <form class="search-form">
+      <input type="search" class="search-form__input" value="daemon" placeholder="Search units by name...">
+    </form>
+  </div>
+
+  <div class="section">
+    <h2 class="section__title">Search results for "daemon"</h2>
+    <div class="search-results__item">
+      <div class="search-results__name"><a href="#">Daemon Prince</a></div>
+      <div class="search-results__desc">A mortal champion ascended to daemonhood. Single model hero with multiple weapon options.</div>
+    </div>
+    <div class="search-results__item">
+      <div class="search-results__name"><a href="#">Flesh Hounds</a></div>
+      <div class="search-results__desc">Daemonic hunting beasts of Khorne. Fast-moving pack unit, 5-10 models.</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- DETAIL PAGE -->
+<div id="detail" class="mockup-page">
+<div class="page">
+  <header class="page__header">
+    <h1 class="page__title">Aine Program</h1>
+    <nav class="page__nav"><a href="#">Home</a> &rsaquo; Daemon Prince</nav>
+  </header>
+
+  <div class="section">
+    <h2 class="section__title">Daemon Prince</h2>
+    <dl>
+      <dt>Type</dt>
+      <dd>Hero, Monster</dd>
+      <dt>Points</dt>
+      <dd>210</dd>
+      <dt>Movement</dt>
+      <dd>8"</dd>
+      <dt>Wounds</dt>
+      <dd>8</dd>
+      <dt>Save</dt>
+      <dd>3+</dd>
+    </dl>
+
+    <details>
+      <summary>Rules: Daemon Prince Abilities</summary>
+      <p>This unit has the DAEMON and KHORNE keywords. It can fly. At the start of your hero phase, if this model is within 8" of any enemy models, you can roll a dice. On a 4+, the closest enemy unit suffers D3 mortal wounds.</p>
+    </details>
+  </div>
+
+  <div class="section">
+    <h2 class="section__title">Models</h2>
+
+    <div class="model">
+      <div class="model__name">Daemon Prince</div>
+
+      <h3 class="model__subtitle">Default Equipment</h3>
+      <table>
+        <thead><tr><th>Weapon</th><th>Range</th><th>Attacks</th><th>Hit</th><th>Wound</th><th>Rend</th><th>Damage</th></tr></thead>
+        <tbody>
+          <tr><td>Daemonic Axe</td><td>1"</td><td>4</td><td>3+</td><td>3+</td><td>-2</td><td>2</td></tr>
+        </tbody>
+      </table>
+
+      <h3 class="model__subtitle">Equipment Options</h3>
+      <table>
+        <thead><tr><th>Weapon</th><th>Range</th><th>Attacks</th><th>Hit</th><th>Wound</th><th>Rend</th><th>Damage</th></tr></thead>
+        <tbody>
+          <tr><td>Hellforged Sword <em class="search-results__desc">(replaces Daemonic Axe)</em></td><td>1"</td><td>6</td><td>3+</td><td>4+</td><td>-1</td><td>1</td></tr>
+          <tr><td>Malefic Talons <em class="search-results__desc">(replaces Daemonic Axe)</em></td><td>1"</td><td>5</td><td>3+</td><td>3+</td><td>-1</td><td>D3</td></tr>
+        </tbody>
+      </table>
+
+      <details>
+        <summary>Rules: Weapon Options</summary>
+        <p>This model can replace its Daemonic Axe with one of the listed alternatives. The Hellforged Sword trades damage for additional attacks. The Malefic Talons offer variable damage output.</p>
+      </details>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ADMIN PAGE -->
+<div id="admin" class="mockup-page">
+<div class="page">
+  <header class="page__header">
+    <h1 class="page__title">Aine Program — Admin</h1>
+    <nav class="page__nav"><a href="#">Home</a> &rsaquo; <a href="#">Admin</a> &rsaquo; Edit Unit</nav>
+  </header>
+
+  <div class="section">
+    <h2 class="section__title">Edit Unit: Daemon Prince</h2>
+    <form class="admin-form">
+      <div class="admin-form__field">
+        <label class="admin-form__label" for="name">Unit Name</label>
+        <input class="admin-form__input" type="text" id="name" value="Daemon Prince">
+      </div>
+      <div class="admin-form__field">
+        <label class="admin-form__label" for="type">Type</label>
+        <input class="admin-form__input" type="text" id="type" value="Hero, Monster">
+      </div>
+      <div class="admin-form__field">
+        <label class="admin-form__label" for="points">Points</label>
+        <input class="admin-form__input" type="number" id="points" value="210">
+      </div>
+      <div class="admin-form__field">
+        <label class="admin-form__label" for="desc">Description</label>
+        <textarea class="admin-form__textarea" id="desc">A mortal champion ascended to daemonhood. Single model hero with multiple weapon options.</textarea>
+      </div>
+      <div class="admin-form__field">
+        <label class="admin-form__label" for="movement">Movement</label>
+        <input class="admin-form__input" type="text" id="movement" value="8&quot;">
+      </div>
+      <div class="admin-form__field">
+        <label class="admin-form__label" for="wounds">Wounds</label>
+        <input class="admin-form__input" type="number" id="wounds" value="8">
+      </div>
+      <div class="admin-form__field">
+        <label class="admin-form__label" for="save">Save</label>
+        <input class="admin-form__input" type="text" id="save" value="3+">
+      </div>
+      <div class="admin-form__field">
+        <button type="button" class="admin-form__submit">Save Unit</button>
+      </div>
+    </form>
+  </div>
+</div>
+</div>
+
+<script>
+function show(id) {
+  document.querySelectorAll('.mockup-page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.mockup-nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>
+</body>
+</html>
