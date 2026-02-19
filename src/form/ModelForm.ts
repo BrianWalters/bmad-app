@@ -1,4 +1,4 @@
-import type { FormField } from "./field";
+import type { FormField } from "@/form/field";
 import { modelSchema } from "@/data/validation/model";
 import {
   createModel,
@@ -19,7 +19,7 @@ export class ModelForm {
 
     if (modelId !== undefined) {
       const existing = getModelById(modelId);
-      if (!existing) {
+      if (!existing || existing.unitId !== unitId) {
         this.modelExists = false;
         return;
       }

@@ -87,6 +87,15 @@ describe("ModelForm", () => {
       expect(form.isEditMode()).toBe(true);
       expect(form.exists()).toBe(false);
     });
+
+    it("sets exists to false when model belongs to a different unit", () => {
+      const unit = createTestUnit();
+      const created = createModel(unit.id, { name: "Phobos" });
+
+      const form = new ModelForm(unit.id + 1, created.id);
+      expect(form.isEditMode()).toBe(true);
+      expect(form.exists()).toBe(false);
+    });
   });
 
   describe("handleForm — create mode", () => {

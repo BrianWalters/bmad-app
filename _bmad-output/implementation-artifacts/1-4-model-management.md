@@ -1,6 +1,6 @@
 # Story 1.4: Model Management
 
-Status: review
+Status: done
 
 ## Story
 
@@ -309,6 +309,7 @@ No issues encountered during implementation. All tasks completed in a single pas
 ### Change Log
 
 - 2026-02-19: Implemented Story 1.4 — Model Management. Added model table, Zod schema, repository, ModelForm class, admin form component, and route pages for add/edit/delete model within a unit.
+- 2026-02-19: Code review fixes — added model-unit ownership validation, fixed relative import to @/ alias, added whitespace trimming on model name, removed unused type export, renamed [id] route param to [unitId], updated File List with Drizzle metadata files.
 
 ### File List
 
@@ -324,3 +325,5 @@ No issues encountered during implementation. All tasks completed in a single pas
 - src/pages/admin/units/[id]/edit.astro (modified — added models section)
 - src/pages/admin/units/new.astro (modified — added "save first" note)
 - drizzle/0001_medical_talkback.sql (generated — model table migration)
+- drizzle/meta/_journal.json (modified — Drizzle migration journal)
+- drizzle/meta/0001_snapshot.json (generated — Drizzle migration snapshot)

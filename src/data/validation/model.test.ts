@@ -15,6 +15,11 @@ describe("modelSchema", () => {
     expect(result.success).toBe(false);
   });
 
+  it("rejects whitespace-only name", () => {
+    const result = modelSchema.safeParse({ name: "   " });
+    expect(result.success).toBe(false);
+  });
+
   it("rejects empty name", () => {
     const result = modelSchema.safeParse({ name: "" });
     expect(result.success).toBe(false);
