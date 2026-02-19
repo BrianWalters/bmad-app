@@ -1,6 +1,7 @@
 ---
 import type { UnitForm } from "@/form/UnitForm";
 import Field from "@/components/Field.astro";
+import Button from "@/components/Button.astro";
 
 interface Props {
   csrfToken: string;
@@ -51,5 +52,5 @@ const errors = unitForm.getErrors();
     )}
   </div>
 
-  <button type="submit" class="admin-form__submit" formnovalidate>{submitLabel}</button>
+  <Button type="submit" label={submitLabel} />
 </form>

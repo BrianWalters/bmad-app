@@ -2,20 +2,20 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import Database from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
-import * as schema from "../data/orm/schema";
+import * as schema from "@/data/orm/schema";
 
 let sqlite: InstanceType<typeof Database>;
 let testDb: ReturnType<typeof drizzle<typeof schema>>;
 
-vi.mock("../data/orm/connection", () => ({
+vi.mock("@/data/orm/connection", () => ({
   get db() {
     return testDb;
   },
 }));
 
-const { UnitForm } = await import("./UnitForm");
+const { UnitForm } = await import("@/form/UnitForm");
 const { createUnit, getUnitById, getKeywordsForUnit } = await import(
-  "../data/repo/unit-repository"
+  "@/data/repo/unit-repository"
 );
 
 function makeFormData(values: Record<string, string>): FormData {

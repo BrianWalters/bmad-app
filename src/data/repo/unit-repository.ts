@@ -119,8 +119,13 @@ export function updateUnit(id: number, data: UnitData) {
   });
 }
 
-export function deleteUnitById(id: number) {
-  db.delete(unit).where(eq(unit.id, id)).run();
+export interface DeleteResult {
+  success: boolean;
+}
+
+export function deleteUnitById(id: number): DeleteResult {
+  const result = db.delete(unit).where(eq(unit.id, id)).run();
+  return { success: result.changes > 0 };
 }
 
 export function getAllUnits() {

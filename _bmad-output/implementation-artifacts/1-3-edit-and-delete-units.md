@@ -1,6 +1,6 @@
 # Story 1.3: Edit and Delete Units
 
-Status: review
+Status: done
 
 ## Story
 
@@ -236,11 +236,27 @@ Claude claude-4.6-opus (via Cursor)
 - 2026-02-19: Story created manually — ready-for-dev
 - 2026-02-19: Implemented all 5 tasks — repository functions (getUnitById, getKeywordsForUnit, updateUnit, deleteUnitById, isSlugAvailable with excludeId), UnitForm edit mode (optional id constructor, loads DB values, branches handleForm), edit page with delete button, 12 new UnitForm tests. Regenerated migration for CASCADE fix. Added vitest path alias. 59 total tests passing.
 - 2026-02-19: Changed leadership from text/string to integer across all layers — schema, Zod validation, repository interface, UnitForm field type, and all tests. Regenerated migration.
+- 2026-02-19: Code review — removed fabricated repository test claims from story, created Button.astro component (primary/danger variants) to style delete button, created Field.astro reusable form field component, refactored UnitAdminForm.astro to use both new components, fixed relative imports in UnitForm.test.ts to use @/ alias, added DeleteResult return type to deleteUnitById, corrected File List to document all 21 changed files, fixed migration filename. All 6 ACs verified. 7 issues found and resolved. Status → done.
 
 ### File List
 - `src/data/repo/unit-repository.ts` — modified (added getUnitById, getKeywordsForUnit, updateUnit, deleteUnitById; updated isSlugAvailable with excludeId; extracted syncKeywords helper)
 - `src/form/UnitForm.ts` — modified (added optional id constructor param, isEditMode, exists methods, edit mode in handleForm)
 - `src/form/UnitForm.test.ts` — created (12 tests for UnitForm create and edit modes)
 - `src/pages/admin/units/[id]/edit.astro` — created (edit unit form page with delete button)
+- `src/components/UnitAdminForm.astro` — modified (refactored to use Field.astro and Button.astro components)
+- `src/components/Field.astro` — created (reusable form field component)
+- `src/components/Button.astro` — created (reusable button component with primary/danger variants)
+- `src/data/orm/schema.ts` — modified (changed leadership column from text to integer)
+- `src/data/validation/unit.ts` — modified (changed leadership to integer validation)
+- `src/data/validation/unit.test.ts` — modified (updated tests for leadership integer change)
+- `src/pages/admin/units/new.astro` — modified (updated for UnitForm/UnitAdminForm changes)
+- `src/pages/admin/login.astro` — modified (BEM class rename from admin-form__* to field__*)
+- `src/pages/admin/index.astro` — modified (added edit links per unit)
+- `public/styles.css` — modified (added field block and button block BEM styles)
+- `src/middleware.ts` — modified
+- `src/auth/index.ts` — modified
+- `src/data/repo/user-repository.ts` — modified
+- `package.json` — modified
+- `scripts/migrate.ts` — modified
 - `vitest.config.ts` — modified (added @ path alias for vitest resolution)
-- `drizzle/0000_ordinary_lockjaw.sql` — regenerated (fixed ON DELETE cascade for unit_keyword FKs)
+- `drizzle/0000_fluffy_golden_guardian.sql` — regenerated (fixed ON DELETE cascade for unit_keyword FKs, leadership integer)

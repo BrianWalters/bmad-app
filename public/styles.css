@@ -66,15 +66,29 @@ a:focus { outline: 2px solid var(--color-accent); outline-offset: 2px; }
   margin-top: 0.25rem;
 }
 
-.admin-form__submit {
+/* Button block */
+.btn {
   font-family: inherit;
   font-size: 1rem;
   padding: 0.5rem 1rem;
-  background: var(--color-accent);
-  color: var(--color-bg);
   border: none;
   cursor: pointer;
   font-weight: 700;
 }
-.admin-form__submit:hover { background: var(--color-accent-dark); }
-.admin-form__submit:focus { outline: 2px solid var(--color-text); outline-offset: 2px; }
+.btn:focus { outline: 2px solid var(--color-text); outline-offset: 2px; }
+
+.btn--primary {
+  background: var(--color-accent);
+  color: var(--color-bg);
+}
+.btn--primary:hover { background: var(--color-accent-dark); }
+
+.btn--danger {
+  background: var(--color-bg);
+  color: var(--color-accent);
+  border: 2px solid var(--color-accent);
+}
+.btn--danger:hover {
+  background: var(--color-accent);
+  color: var(--color-bg);
+}

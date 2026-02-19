@@ -1,0 +1,15 @@
+---
+interface Props {
+  label: string;
+  type: "submit" | "button" | "reset";
+  variant?: "primary" | "danger";
+}
+
+const { label, type, variant = "primary" } = Astro.props;
+---
+
+<button
+  type={type}
+  class:list={["btn", `btn--${variant}`]}
+  formnovalidate={type === "submit" || undefined}
+>{label}</button>
