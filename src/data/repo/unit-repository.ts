@@ -1,22 +1,59 @@
-import { eq, asc } from "drizzle-orm";
-import { db } from "../orm/connection";
-import { unit, keyword, unitKeyword } from "../orm/schema";
+import { eq, asc, and, ne } from "drizzle-orm";
+import { db } from "@/data/orm/connection";
+import { unit, keyword, unitKeyword } from "@/data/orm/schema";
 
-interface CreateUnitData {
+interface UnitData {
   name: string;
   slug: string;
   movement: number;
   toughness: number;
   save: number;
   wounds: number;
-  leadership: string;
+  leadership: number;
   objectiveControl: number;
-  invulnerabilitySave: number;
+  invulnerabilitySave?: number;
   description?: string;
   keywords?: string;
 }
 
-export function createUnit(data: CreateUnitData) {
+function syncKeywords(
+  tx: Parameters<Parameters<typeof db.transaction>[0]>[0],
+  unitId: number,
+  keywordsString?: string,
+) {
+  tx.delete(unitKeyword).where(eq(unitKeyword.unitId, unitId)).run();
+
+  if (!keywordsString) return;
+
+  const keywordNames = keywordsString
+    .split(",")
+    .map((k) => k.trim())
+    .filter((k) => k.length > 0);
+
+  for (const name of keywordNames) {
+    const existing = tx
+      .select()
+      .from(keyword)
+      .where(eq(keyword.name, name))
+      .get();
+
+    let keywordId: number;
+    if (existing) {
+      keywordId = existing.id;
+    } else {
+      const created = tx
+        .insert(keyword)
+        .values({ name })
+        .returning()
+        .get();
+      keywordId = created.id;
+    }
+
+    tx.insert(unitKeyword).values({ unitId, keywordId }).run();
+  }
+}
+
+export function createUnit(data: UnitData) {
   return db.transaction((tx) => {
     const unitRow = tx
       .insert(unit)
@@ -29,45 +66,61 @@ export function createUnit(data: CreateUnitData) {
         wounds: data.wounds,
         leadership: data.leadership,
         objectiveControl: data.objectiveControl,
-        invulnerabilitySave: data.invulnerabilitySave,
+        invulnerabilitySave: data.invulnerabilitySave ?? null,
         description: data.description || null,
       })
       .returning()
       .get();
 
-    if (data.keywords) {
-      const keywordNames = data.keywords
-        .split(",")
-        .map((k) => k.trim())
-        .filter((k) => k.length > 0);
-
-      for (const name of keywordNames) {
-        const existing = tx
-          .select()
-          .from(keyword)
-          .where(eq(keyword.name, name))
-          .get();
-
-        let keywordId: number;
-        if (existing) {
-          keywordId = existing.id;
-        } else {
-          const created = tx
-            .insert(keyword)
-            .values({ name })
-            .returning()
-            .get();
-          keywordId = created.id;
-        }
-
-        tx.insert(unitKeyword)
-          .values({ unitId: unitRow.id, keywordId })
-          .run();
-      }
-    }
+    syncKeywords(tx, unitRow.id, data.keywords);
 
     return unitRow;
   });
+}
+
+export function getUnitById(id: number) {
+  return db.select().from(unit).where(eq(unit.id, id)).get() ?? null;
+}
+
+export function getKeywordsForUnit(unitId: number): string[] {
+  const rows = db
+    .select({ name: keyword.name })
+    .from(unitKeyword)
+    .innerJoin(keyword, eq(unitKeyword.keywordId, keyword.id))
+    .where(eq(unitKeyword.unitId, unitId))
+    .all();
+
+  return rows.map((r) => r.name);
+}
+
+export function updateUnit(id: number, data: UnitData) {
+  return db.transaction((tx) => {
+    const unitRow = tx
+      .update(unit)
+      .set({
+        name: data.name,
+        slug: data.slug,
+        movement: data.movement,
+        toughness: data.toughness,
+        save: data.save,
+        wounds: data.wounds,
+        leadership: data.leadership,
+        objectiveControl: data.objectiveControl,
+        invulnerabilitySave: data.invulnerabilitySave ?? null,
+        description: data.description || null,
+      })
+      .where(eq(unit.id, id))
+      .returning()
+      .get();
+
+    syncKeywords(tx, id, data.keywords);
+
+    return unitRow;
+  });
+}
+
+export function deleteUnitById(id: number) {
+  db.delete(unit).where(eq(unit.id, id)).run();
 }
 
 export function getAllUnits() {
@@ -78,7 +131,15 @@ export function findUnitBySlug(slug: string) {
   return db.select().from(unit).where(eq(unit.slug, slug)).get() ?? null;
 }
 
-export function isSlugAvailable(slug: string): boolean {
-  const existing = db.select().from(unit).where(eq(unit.slug, slug)).get();
+export function isSlugAvailable(slug: string, excludeId?: number): boolean {
+  const conditions = [eq(unit.slug, slug)];
+  if (excludeId !== undefined) {
+    conditions.push(ne(unit.id, excludeId));
+  }
+  const existing = db
+    .select()
+    .from(unit)
+    .where(and(...conditions))
+    .get();
   return !existing;
 }

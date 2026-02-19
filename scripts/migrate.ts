@@ -1,4 +1,4 @@
-import { runMigrations } from "../src/data/orm/connection";
+import { runMigrations } from "@/data/orm/connection";
 
 console.log("Running database migrations...");
 runMigrations();

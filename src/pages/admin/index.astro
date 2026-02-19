@@ -1,8 +1,8 @@
 ---
-import { sessionManager } from "../../auth";
-import { getSessionCookieConfig } from "../../auth/session";
-import { validateCsrfToken } from "../../auth/csrf";
-import { getAllUnits } from "../../data/repo/unit-repository";
+import { sessionManager } from "@/auth";
+import { getSessionCookieConfig } from "@/auth/session";
+import { validateCsrfToken } from "@/auth/csrf";
+import { getAllUnits } from "@/data/repo/unit-repository";
 
 const session = Astro.locals.session!;
 

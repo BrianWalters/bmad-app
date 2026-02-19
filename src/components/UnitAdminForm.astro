@@ -1,0 +1,72 @@
+---
+import type { UnitForm } from "@/form/UnitForm";
+
+interface Props {
+  csrfToken: string;
+  unitForm: UnitForm;
+  submitLabel: string;
+}
+
+const { csrfToken, unitForm, submitLabel } = Astro.props;
+const fields = unitForm.getFields();
+const errors = unitForm.getErrors();
+---
+
+{errors.form && <p class="admin-form__error" role="alert">{errors.form}</p>}
+
+<form method="POST" class="admin-form">
+  <input type="hidden" name="_csrf" value={csrfToken} />
+
+  {fields.map((field) => (
+    <div class="admin-form__field">
+      <label for={field.name} class="admin-form__label">
+        {field.label}{field.required && " *"}
+      </label>
+      <input
+        id={field.name}
+        name={field.name}
+        type={field.type}
+        class="admin-form__input"
+        value={field.value ?? ""}
+        required={field.required}
+        aria-describedby={errors[field.name] ? `${field.name}-error` : undefined}
+      />
+      {errors[field.name] && (
+        <p id={`${field.name}-error`} class="admin-form__error">
+          {errors[field.name]}
+        </p>
+      )}
+    </div>
+  ))}
+
+  <div class="admin-form__field">
+    <label for="description" class="admin-form__label">Description</label>
+    <textarea
+      id="description"
+      name="description"
+      rows="4"
+      class="admin-form__textarea"
+      aria-describedby={errors.description ? "description-error" : undefined}
+    >{unitForm.getValue("description") ?? ""}</textarea>
+    {errors.description && (
+      <p id="description-error" class="admin-form__error">{errors.description}</p>
+    )}
+  </div>
+
+  <div class="admin-form__field">
+    <label for="keywords" class="admin-form__label">Keywords</label>
+    <input
+      id="keywords"
+      name="keywords"
+      class="admin-form__input"
+      value={unitForm.getValue("keywords") ?? ""}
+      placeholder="e.g. Infantry, Imperium, Adeptus Astartes"
+      aria-describedby={errors.keywords ? "keywords-error" : undefined}
+    />
+    {errors.keywords && (
+      <p id="keywords-error" class="admin-form__error">{errors.keywords}</p>
+    )}
+  </div>
+
+  <button type="submit" class="admin-form__submit">{submitLabel}</button>
+</form>

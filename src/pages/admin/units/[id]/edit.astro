@@ -1,12 +1,22 @@
 ---
 import { UnitForm } from "@/form/UnitForm";
 import { validateCsrfToken } from "@/auth/csrf";
+import { deleteUnitById } from "@/data/repo/unit-repository";
 import UnitAdminForm from "@/components/UnitAdminForm.astro";
 
 const session = Astro.locals.session!;
 const csrfToken = session.csrfToken;
 
-const unitForm = new UnitForm();
+const id = Number(Astro.params.id);
+if (isNaN(id)) {
+  return new Response(null, { status: 404 });
+}
+
+const unitForm = new UnitForm(id);
+
+if (!unitForm.exists()) {
+  return new Response(null, { status: 404 });
+}
 
 if (Astro.request.method === "POST") {
   const data = await Astro.request.formData();
@@ -14,10 +24,15 @@ if (Astro.request.method === "POST") {
 
   if (!validateCsrfToken(csrfToken, submittedCsrf)) {
     unitForm.getErrors().form = "Invalid form submission. Please try again.";
+  } else if (data.get("action") === "delete") {
+    deleteUnitById(id);
+    return Astro.redirect("/admin");
   } else if (unitForm.handleForm(data)) {
     return Astro.redirect("/admin");
   }
 }
+
+const unitName = unitForm.getValue("name") ?? "Unit";
 ---
 
 <html lang="en">
@@ -25,19 +40,27 @@ if (Astro.request.method === "POST") {
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width" />
     <link rel="stylesheet" href="/styles.css" />
-    <title>Create New Unit - Admin - aine-program</title>
+    <title>Edit {unitName} - Admin - aine-program</title>
   </head>
   <body>
     <main class="page">
-      <h1>Create New Unit</h1>
+      <h1>Edit {unitName}</h1>
 
       <p><a href="/admin">&larr; Back to Dashboard</a></p>
 
       <UnitAdminForm
         csrfToken={csrfToken}
         unitForm={unitForm}
-        submitLabel="Create Unit"
+        submitLabel="Save Changes"
       />
+
+      <hr />
+
+      <form method="POST" onsubmit="return confirm('Are you sure you want to delete this unit? This action cannot be undone.')">
+        <input type="hidden" name="_csrf" value={csrfToken} />
+        <input type="hidden" name="action" value="delete" />
+        <button type="submit" class="admin-form__delete">Delete Unit</button>
+      </form>
     </main>
   </body>
 </html>

@@ -5,15 +5,8 @@
     {
       "idx": 0,
       "version": "6",
-      "when": 1771455312758,
-      "tag": "0000_graceful_shotgun",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "6",
-      "when": 1771457679323,
-      "tag": "0001_mushy_mastermind",
+      "when": 1771519574292,
+      "tag": "0000_fluffy_golden_guardian",
       "breakpoints": true
     }
   ]

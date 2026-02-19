@@ -1,5 +1,5 @@
 import { defineMiddleware } from "astro:middleware";
-import { sessionManager } from "./auth";
+import { sessionManager } from "@/auth";
 
 export const onRequest = defineMiddleware(async (context, next) => {
   const { pathname } = context.url;

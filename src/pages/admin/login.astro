@@ -1,9 +1,9 @@
 ---
-import { loginSchema } from "../../data/validation/login";
-import { validateCsrfToken } from "../../auth/csrf";
-import { sessionManager } from "../../auth";
-import { verifyPassword, getSessionCookieConfig } from "../../auth/session";
-import { findUserByUsername } from "../../data/repo/user-repository";
+import { loginSchema } from "@/data/validation/login";
+import { validateCsrfToken } from "@/auth/csrf";
+import { sessionManager } from "@/auth";
+import { verifyPassword, getSessionCookieConfig } from "@/auth/session";
+import { findUserByUsername } from "@/data/repo/user-repository";
 
 let errors: Record<string, string> = {};
 let formData: Record<string, string> = {};

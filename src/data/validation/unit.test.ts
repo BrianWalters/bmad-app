@@ -8,7 +8,7 @@ describe("unitSchema", () => {
     toughness: "4",
     save: "3",
     wounds: "2",
-    leadership: "6+",
+    leadership: "6",
     objectiveControl: "2",
     invulnerabilitySave: "4",
   };
@@ -100,12 +100,12 @@ describe("unitSchema", () => {
     expect(result.success).toBe(false);
   });
 
-  it("rejects empty invulnerabilitySave", () => {
+  it("allows optional invulnerabilitySave to be empty", () => {
     const result = unitSchema.safeParse({
       ...validInput,
       invulnerabilitySave: "",
     });
-    expect(result.success).toBe(false);
+    expect(result.success).toBe(true);
   });
 
   it("allows optional description to be empty", () => {
@@ -140,5 +140,24 @@ describe("unitSchema", () => {
       movement: "",
     });
     expect(result.success).toBe(false);
+  });
+
+  it("accepts only required fields with all optional fields omitted", () => {
+    const requiredOnly = {
+      name: "Intercessor Squad",
+      movement: "6",
+      toughness: "4",
+      save: "3",
+      wounds: "2",
+      leadership: "6",
+      objectiveControl: "2",
+    };
+    const result = unitSchema.safeParse(requiredOnly);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.invulnerabilitySave).toBeUndefined();
+      expect(result.data.description).toBeUndefined();
+      expect(result.data.keywords).toBeUndefined();
+    }
   });
 });

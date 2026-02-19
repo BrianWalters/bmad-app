@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
-import { db } from "../orm/connection";
-import { adminUser } from "../orm/schema";
+import { db } from "@/data/orm/connection";
+import { adminUser } from "@/data/orm/schema";
 
 export function findUserByUsername(username: string) {
   return (

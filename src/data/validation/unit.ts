@@ -22,9 +22,9 @@ export const unitSchema = z.object({
   toughness: requiredInt,
   save: requiredInt,
   wounds: requiredInt,
-  leadership: nonEmpty,
+  leadership: requiredInt,
   objectiveControl: requiredInt,
-  invulnerabilitySave: requiredInt,
+  invulnerabilitySave: optionalInt,
   description: optionalString,
   keywords: optionalString,
 });

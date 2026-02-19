@@ -195,7 +195,8 @@ cd aine-program && npx astro add node
 **Migration Approach:**
 - Drizzle Kit 0.31.9 for schema-first migration generation
 - Migrations stored in `drizzle/` directory and committed to version control
-- Migrations applied at application startup or via CLI before deploy
+- When schemas are changed, run `npm run generate` to create migrations
+- To update the database to the latest schema and apply all migrations, run `npm run migrate`
 
 **Caching Strategy:**
 - HTTP `Cache-Control` headers on public pages (index, detail, search)
@@ -359,6 +360,7 @@ cd aine-program && npx astro add node
 - `src/data/orm/` — Drizzle schema definitions and database connection
 - `src/data/repo/` — Domain-specific repository modules for read-only data access (one file per domain entity, queries defined inline)
 - `src/data/validation/` — Zod schemas for form validation
+- `src/form/` — CRUD form abstractions (one class per entity) — encapsulate field definitions, FormData parsing, validation orchestration, and save logic so route files stay minimal and form behavior is reusable across create/edit pages
 - `src/auth/` — session management, CSRF token logic, auth middleware
 - `public/` — static assets served as-is
 - `drizzle/` — generated migration files (committed to version control)
@@ -495,6 +497,7 @@ aine-program/
 │   │   ├── Breadcrumb.astro
 │   │   ├── SearchForm.astro
 │   │   ├── SiteHeader.astro
+│   │   ├── UnitAdminForm.astro
 │   │   └── UnitCard.astro
 │   ├── data/
 │   │   ├── orm/
@@ -512,6 +515,9 @@ aine-program/
 │   │       ├── unit.test.ts
 │   │       ├── login.ts
 │   │       └── login.test.ts
+│   ├── form/
+│   │   ├── field.ts
+│   │   └── UnitForm.ts
 │   ├── layouts/
 │   │   └── Base.astro
 │   ├── pages/
@@ -552,6 +558,14 @@ aine-program/
 - `src/data/validation/` contains all Zod schemas
 - Admin form pages import Zod schemas from here — never define inline validation
 - Validation always runs in page frontmatter BEFORE calling any query function
+
+**Form Boundary:**
+- `src/form/` contains CRUD form classes — one per entity (e.g., `UnitForm.ts`)
+- Each form class encapsulates: field definitions, FormData parsing, Zod validation, and save orchestration (slug generation, repository calls)
+- Form classes are imported and instantiated in `.astro` page frontmatter — route files handle only CSRF validation, form instantiation, and redirect logic
+- Form classes import from `src/data/validation/`, `src/data/repo/`, and `src/data/orm/` as needed
+- Reusable across create and edit pages for the same entity
+- `src/form/field.ts` defines the shared `FormField` interface used by form components
 
 **Auth Boundary:**
 - `src/auth/` owns all session and CSRF logic
@@ -619,11 +633,12 @@ Browser Request
     → src/middleware.ts (auth check for /admin/*, cache headers for public)
     → src/pages/*.astro (route handler)
         → src/auth/csrf.ts (validate on POST)
-        → src/data/validation/*.ts (validate form input with Zod)
-        → src/data/repo/*-repository.ts (read-only queries)
-        → src/data/orm/ (write operations)
-            → src/data/orm/connection.ts (Drizzle instance)
-                → SQLite file (./data/sqlite.db)
+        → src/form/*.ts (admin CRUD forms: parse FormData, validate, save)
+            → src/data/validation/*.ts (Zod schema validation)
+            → src/data/repo/*-repository.ts (DB reads and writes)
+                → src/data/orm/connection.ts (Drizzle instance)
+                    → SQLite file (./data/sqlite.db)
+        → src/data/repo/*-repository.ts (direct read-only queries for GET)
     → src/layouts/Base.astro (HTML shell, header, footer)
         → src/components/*.astro (render UI)
     → HTML Response to Browser
@@ -634,7 +649,7 @@ Browser Request
 **Dev server:** `npm run dev` — Astro dev server with hot reload via Vite
 **Build:** `npm run build` — Astro produces a Node.js server bundle in `dist/`
 **Preview:** `npm run preview` — runs the built server locally
-**Migrations:** `npx drizzle-kit generate` then `npx drizzle-kit migrate`
+**Migrations:** When schemas change, run `npm run generate` to create migrations. To apply all migrations and update the database, run `npm run migrate`.
 **Unit tests:** `npx vitest` (watches co-located `.test.ts` files)
 **E2E tests:** `npx playwright test` (runs `e2e/*.spec.ts` against a running server)
 **Create admin:** `npx tsx scripts/create-admin.ts` — interactive prompt for username + password, hashes with bcrypt, inserts into DB. This is the ONLY way to create admin users.

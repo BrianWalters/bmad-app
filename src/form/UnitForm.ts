@@ -1,11 +1,54 @@
 import type { FormField } from "./field";
 import { unitSchema } from "@/data/validation/unit";
 import { slugify } from "@/data/orm/slugify";
-import { createUnit, isSlugAvailable } from "@/data/repo/unit-repository";
+import {
+  createUnit,
+  getUnitById,
+  getKeywordsForUnit,
+  updateUnit,
+  isSlugAvailable,
+} from "@/data/repo/unit-repository";
 
 export class UnitForm {
+  private id?: number;
   private formData: Record<string, string> = {};
   private errors: Record<string, string> = {};
+  private unitExists = true;
+
+  constructor(id?: number) {
+    this.id = id;
+
+    if (id !== undefined) {
+      const existing = getUnitById(id);
+      if (!existing) {
+        this.unitExists = false;
+        return;
+      }
+
+      const keywords = getKeywordsForUnit(id);
+
+      this.formData = {
+        name: existing.name,
+        movement: String(existing.movement),
+        toughness: String(existing.toughness),
+        save: String(existing.save),
+        wounds: String(existing.wounds),
+        leadership: String(existing.leadership),
+        objectiveControl: String(existing.objectiveControl),
+        invulnerabilitySave: existing.invulnerabilitySave != null ? String(existing.invulnerabilitySave) : "",
+        description: existing.description ?? "",
+        keywords: keywords.join(", "),
+      };
+    }
+  }
+
+  isEditMode(): boolean {
+    return this.id !== undefined;
+  }
+
+  exists(): boolean {
+    return this.unitExists;
+  }
 
   getFields(): Array<FormField> {
     return [
@@ -14,9 +57,9 @@ export class UnitForm {
       { name: "toughness", label: "Toughness", required: true, type: "number", value: this.formData.toughness ?? null },
       { name: "save", label: "Save", required: true, type: "number", value: this.formData.save ?? null },
       { name: "wounds", label: "Wounds", required: true, type: "number", value: this.formData.wounds ?? null },
-      { name: "leadership", label: "Leadership", required: true, type: "text", value: this.formData.leadership ?? null },
+      { name: "leadership", label: "Leadership", required: true, type: "number", value: this.formData.leadership ?? null },
       { name: "objectiveControl", label: "Objective Control", required: true, type: "number", value: this.formData.objectiveControl ?? null },
-      { name: "invulnerabilitySave", label: "Invulnerability Save", required: true, type: "number", value: this.formData.invulnerabilitySave ?? null },
+      { name: "invulnerabilitySave", label: "Invulnerability Save", required: false, type: "number", value: this.formData.invulnerabilitySave ?? null },
     ];
   }
 
@@ -58,12 +101,16 @@ export class UnitForm {
 
     const slug = slugify(parsed.data.name);
 
-    if (!isSlugAvailable(slug)) {
+    if (!isSlugAvailable(slug, this.id)) {
       this.errors.name = "A unit with a similar name already exists. Please choose a different name.";
       return false;
     }
 
-    createUnit({ ...parsed.data, slug });
+    if (this.id !== undefined) {
+      updateUnit(this.id, { ...parsed.data, slug });
+    } else {
+      createUnit({ ...parsed.data, slug });
+    }
 
     return true;
   }

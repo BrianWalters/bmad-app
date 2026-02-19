@@ -1,6 +1,6 @@
 # Story 1.2: Create New Unit
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -278,7 +278,7 @@ Claude claude-4.6-opus (via Cursor)
 
 ### Completion Notes List
 
-- Task 1: Added `unit`, `keyword`, and `unit_keyword` tables to Drizzle schema with proper FK constraints, composite PK, and unique slug. movement, toughness, save, wounds, objective_control as integer columns; invulnerability_save as optional integer. Generated migration `0001_odd_albert_cleary.sql`.
+- Task 1: Added `unit`, `keyword`, and `unit_keyword` tables to Drizzle schema with proper FK constraints (cascade delete on unit_keyword), composite PK, and unique slug. movement, toughness, save, wounds, objective_control as integer columns; invulnerability_save as optional integer. A migration was generated.
 - Task 2: Created `slugify()` utility with NFD normalization for accented chars, special char replacement, hyphen collapsing. 10 tests passing.
 - Task 3: Created `unitSchema` Zod validator with integer coercion via preprocess for stat fields (movement, toughness, save, wounds, objectiveControl, invulnerabilitySave) and string fields (name, leadership). 18 tests passing.
 - Task 4: Created `unit-repository.ts` with `createUnit` (transactional insert with find-or-create keywords), `getAllUnits` (alphabetical), `findUnitBySlug`, `isSlugAvailable`. Interface uses number types for integer stat fields.
@@ -289,17 +289,23 @@ Claude claude-4.6-opus (via Cursor)
 ### Change Log
 - 2026-02-18: Story created by create-story workflow — ready-for-dev
 - 2026-02-18: Implemented all 7 tasks — unit/keyword/unit_keyword schema (integer stat columns), slugify utility, Zod validation (integer coercion), repository layer, admin list page, create unit form page (number inputs), unit tests. Moved migrations from middleware to `npm run migrate` command. 28 new tests added, 46 total passing.
+- 2026-02-19: Code review completed — 10 issues found and resolved. Fixed invulnerabilitySave to be optional (schema, Zod, form, repo, tests). Extracted form into UnitAdminForm.astro component. Added HTML required attributes. Converted all relative imports to @/ alias (7 files). Added ON DELETE CASCADE to unit_keyword FKs. Added test for required-only fields. Updated architecture to document src/form/ layer. Updated story File List and completion notes. Migrations wiped for clean regeneration. 47 tests passing.
 
 ### File List
 - `src/data/orm/schema.ts` — modified (added unit, keyword, unit_keyword tables)
 - `src/data/orm/slugify.ts` — created (slug generation utility)
 - `src/data/orm/slugify.test.ts` — created (10 tests for slugify)
 - `src/data/validation/unit.ts` — created (Zod unitSchema + UnitInput type)
-- `src/data/validation/unit.test.ts` — created (15 tests for unitSchema)
+- `src/data/validation/unit.test.ts` — created (a test suite was created for unitSchema)
 - `src/data/repo/unit-repository.ts` — created (createUnit, getAllUnits, findUnitBySlug, isSlugAvailable)
 - `src/pages/admin/index.astro` — modified (added unit list, create link, empty state)
 - `src/pages/admin/units/new.astro` — created (create unit form page with full validation)
+- `src/pages/admin/login.astro` — modified (added stylesheet link)
+- `src/form/field.ts` — created (FormField interface for form components)
+- `src/form/UnitForm.ts` — created (unit CRUD form abstraction)
+- `src/components/UnitAdminForm.astro` — created (reusable unit form component)
+- `public/styles.css` — created (admin form styles and design tokens)
 - `src/middleware.ts` — modified (removed migration call from request lifecycle)
 - `scripts/migrate.ts` — created (standalone migration script)
 - `package.json` — modified (added `migrate` script)
-- `drizzle/0001_odd_albert_cleary.sql` — generated (migration for unit, keyword, unit_keyword tables with integer stat columns)
+- `drizzle/` — a migration was generated (unit, keyword, unit_keyword tables with integer stat columns)

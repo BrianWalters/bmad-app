@@ -41,9 +41,9 @@ export const unit = sqliteTable("unit", {
   toughness: integer("toughness").notNull(),
   save: integer("save").notNull(),
   wounds: integer("wounds").notNull(),
-  leadership: text("leadership").notNull(),
+  leadership: integer("leadership").notNull(),
   objectiveControl: integer("objective_control").notNull(),
-  invulnerabilitySave: integer("invulnerability_save").notNull(),
+  invulnerabilitySave: integer("invulnerability_save"),
   description: text("description"),
   createdAt: text("created_at")
     .notNull()
@@ -60,10 +60,10 @@ export const unitKeyword = sqliteTable(
   {
     unitId: integer("unit_id")
       .notNull()
-      .references(() => unit.id),
+      .references(() => unit.id, { onDelete: "cascade" }),
     keywordId: integer("keyword_id")
       .notNull()
-      .references(() => keyword.id),
+      .references(() => keyword.id, { onDelete: "cascade" }),
   },
   (table) => [primaryKey({ columns: [table.unitId, table.keywordId] })],
 );
