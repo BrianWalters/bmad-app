@@ -141,6 +141,10 @@ Players can browse an alphabetical index of all units and navigate between the i
 Players can search for units by name and navigate from search results to unit details.
 **FRs covered:** FR4, FR5, FR6, FR7, FR8
 
+### Epic 5: Containerization
+Application is containerized with Docker for reliable production deployment.
+**FRs covered:** FR23 (production verification)
+
 ## Epic 1: Admin Authentication & Unit Management
 
 Admin can securely log in and fully manage all unit content — create, edit, and delete units, models, and equipment options.
@@ -306,34 +310,6 @@ So that players can see all available equipment choices and which is the default
 **When** the admin views the model in the form
 **Then** the default equipment selection shows no default selected, prompting the admin to choose one
 
-### Story 1.6: Docker Containerization
-
-As an admin,
-I want to deploy the application via Docker,
-So that the app runs reliably in production and admin changes are immediately visible to players.
-
-**Acceptance Criteria:**
-
-**Given** a multi-stage Dockerfile targeting Node.js 24 Alpine
-**When** `docker compose up --build` is run
-**Then** the Astro app builds, installs production dependencies, and starts the Node server
-
-**Given** Docker Compose is configured with a named volume for the SQLite database
-**When** the container restarts
-**Then** all data persists across restarts
-
-**Given** environment variables `SESSION_SECRET`, `DATABASE_PATH`, and `NODE_ENV` are set in Docker Compose
-**When** the app starts
-**Then** the app uses these values for session signing, database location, and environment mode
-
-**Given** an admin creates or edits a unit via the admin interface
-**When** a player loads any public page
-**Then** the changes are immediately visible because pages are server-rendered from the database on each request (FR23)
-
-**Given** the production Docker image
-**When** inspected
-**Then** it contains only the build output and production dependencies with no dev dependencies or source files
-
 ## Epic 2: Unit Detail Pages
 
 Players can view a unit's complete details — all attributes, models, default equipment, and available equipment options — on a dedicated detail page.
@@ -498,3 +474,35 @@ So that I can find a specific unit quickly without scrolling through the full in
 **Given** the search results page renders
 **When** inspected
 **Then** search results return within 1 second, the page uses semantic HTML, and all text meets WCAG AA contrast requirements
+
+## Epic 5: Containerization
+
+Application is containerized with Docker for reliable production deployment.
+
+### Story 5.1: Docker Containerization
+
+As an admin,
+I want to deploy the application via Docker,
+So that the app runs reliably in production and admin changes are immediately visible to players.
+
+**Acceptance Criteria:**
+
+**Given** a multi-stage Dockerfile targeting Node.js 24 Alpine
+**When** `docker compose up --build` is run
+**Then** the Astro app builds, installs production dependencies, and starts the Node server
+
+**Given** Docker Compose is configured with a named volume for the SQLite database
+**When** the container restarts
+**Then** all data persists across restarts
+
+**Given** environment variables `SESSION_SECRET`, `DATABASE_PATH`, and `NODE_ENV` are set in Docker Compose
+**When** the app starts
+**Then** the app uses these values for session signing, database location, and environment mode
+
+**Given** an admin creates or edits a unit via the admin interface
+**When** a player loads any public page
+**Then** the changes are immediately visible because pages are server-rendered from the database on each request (FR23)
+
+**Given** the production Docker image
+**When** inspected
+**Then** it contains only the build output and production dependencies with no dev dependencies or source files
