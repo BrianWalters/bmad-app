@@ -116,9 +116,13 @@ cd aine-program && npx astro add node
 - Standalone Node.js HTTP server (no Express/Fastify required, though compatible)
 
 **Styling Solution:**
-- Plain CSS — Astro supports scoped `<style>` tags per component natively
-- No CSS framework (aligns with BEM custom CSS requirement from UX spec)
+- Plain CSS with BEM naming — no CSS framework, no preprocessor
 - CSS custom properties for design tokens as specified in UX spec
+- **CSS file organization:**
+  - Each BEM block gets its own CSS file
+  - If a BEM block is used in an Astro component, the CSS file goes in the same directory with the same name but `.css` extension (e.g., `Button.astro` and `Button.css`, `Field.astro` and `Field.css`)
+  - `public/styles.css` serves as the global reset and `:root` CSS custom property definitions only — no BEM block styles in this file
+  - Astro components import their co-located CSS file to include it in the page bundle
 
 **Build Tooling:**
 - Vite (bundled with Astro)
@@ -265,7 +269,7 @@ cd aine-program && npx astro add node
 - Astro components (`.astro` files) for all UI — server-rendered, zero client JS
 - Shared layout in `src/layouts/` for header, footer, base HTML shell
 - Reusable components in `src/components/` for cards, breadcrumbs, forms, tables
-- BEM class naming throughout; scoped styles where component-specific
+- BEM class naming throughout; each BEM block in its own co-located `.css` file
 
 ### Infrastructure & Deployment
 
@@ -297,6 +301,17 @@ cd aine-program && npx astro add node
 - Vitest 4.0.18 for unit and integration tests (schema validation, query logic, form processing)
 - Playwright 1.58.2 for end-to-end tests (page loads, navigation, form submissions, search, auth flows)
 - Both run in Docker-compatible environments
+
+**E2E Testing Strategy (Playwright):**
+
+E2E tests run against a live Astro server with an isolated in-memory SQLite database so tests never touch the development database.
+
+- **Test database isolation:** Set `DATABASE_PATH=:memory:` in the Playwright `webServer.env` configuration. This creates an ephemeral in-memory SQLite database that exists only for the duration of the test run.
+- **Auto-migration on startup:** When `NODE_ENV=test`, the server must auto-run Drizzle migrations at startup so the in-memory database has the correct schema. Implement this by calling `runMigrations()` during server initialization when the test environment is detected.
+- **Test admin seeding:** Because the in-memory database lives inside the server process, data cannot be seeded from an external script. Instead, when `NODE_ENV=test`, the server must auto-seed a test admin user (e.g., username `admin`, password `admin`) immediately after running migrations. This ensures a known admin account is available for E2E login flows.
+- **Test data seeding via HTTP:** Playwright's `globalSetup` script seeds test data (units, models, equipment options) by making HTTP requests to the running server — log in as the test admin, then submit forms through the admin API. This validates the full stack end-to-end, including auth and CSRF flows.
+- **Playwright configuration:** The `webServer` block in `playwright.config.ts` must pass `DATABASE_PATH=:memory:`, `NODE_ENV=test`, and `SESSION_SECRET=test-secret` via its `env` option. The server command remains `npm run preview`.
+- **Test independence:** Each test spec should clean up after itself or operate on unique data to avoid inter-test interference. Use Playwright's `beforeEach`/`afterEach` hooks for test-specific setup when needed. Since the in-memory database resets on every server restart, the full test suite always starts from a clean state.
 
 ### Decision Impact Analysis
 
@@ -484,7 +499,8 @@ aine-program/
 │   └── create-admin.ts
 ├── public/
 │   ├── favicon.svg
-│   └── robots.txt
+│   ├── robots.txt
+│   └── styles.css
 ├── src/
 │   ├── env.d.ts
 │   ├── middleware.ts
@@ -495,10 +511,15 @@ aine-program/
 │   │   └── session.test.ts
 │   ├── components/
 │   │   ├── Breadcrumb.astro
+│   │   ├── Breadcrumb.css
 │   │   ├── SearchForm.astro
+│   │   ├── SearchForm.css
 │   │   ├── SiteHeader.astro
+│   │   ├── SiteHeader.css
 │   │   ├── UnitAdminForm.astro
-│   │   └── UnitCard.astro
+│   │   ├── UnitAdminForm.css
+│   │   ├── UnitCard.astro
+│   │   └── UnitCard.css
 │   ├── data/
 │   │   ├── orm/
 │   │   │   ├── connection.ts
@@ -534,8 +555,6 @@ aine-program/
 │   │           ├── new.astro
 │   │           └── [id]/
 │   │               └── edit.astro
-│   └── styles/
-│       └── global.css
 └── data/
     └── sqlite.db
 ```
@@ -623,7 +642,7 @@ aine-program/
 | CSRF protection | `src/auth/csrf.ts` → all admin form pages |
 | SEO (meta, structured data) | `src/layouts/Base.astro` → all public pages |
 | Accessibility | `src/layouts/Base.astro` (skip link, landmarks), all components |
-| BEM CSS | `src/styles/global.css` + scoped `<style>` in components |
+| BEM CSS | `public/styles.css` (reset + tokens) + co-located `.css` files per BEM block |
 | Cache headers | `src/middleware.ts` or page-level `Astro.response.headers` |
 
 ### Data Flow
@@ -651,7 +670,7 @@ Browser Request
 **Preview:** `npm run preview` — runs the built server locally
 **Migrations:** When schemas change, run `npm run generate` to create migrations. To apply all migrations and update the database, run `npm run migrate`.
 **Unit tests:** `npx vitest` (watches co-located `.test.ts` files)
-**E2E tests:** `npx playwright test` (runs `e2e/*.spec.ts` against a running server)
+**E2E tests:** `npx playwright test` (runs `e2e/*.spec.ts` against an Astro server with in-memory SQLite — see E2E Testing Strategy above)
 **Create admin:** `npx tsx scripts/create-admin.ts` — interactive prompt for username + password, hashes with bcrypt, inserts into DB. This is the ONLY way to create admin users.
 **Docker:** `docker compose up --build` — builds image and starts the app with SQLite volume
 
