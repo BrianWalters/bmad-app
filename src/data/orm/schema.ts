@@ -50,6 +50,17 @@ export const unit = sqliteTable("unit", {
     .default(sql`(datetime('now'))`),
 });
 
+export const model = sqliteTable("model", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  unitId: integer("unit_id")
+    .notNull()
+    .references(() => unit.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  createdAt: text("created_at")
+    .notNull()
+    .default(sql`(datetime('now'))`),
+});
+
 export const keyword = sqliteTable("keyword", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull().unique(),

@@ -1,0 +1,27 @@
+---
+import type { ModelForm } from "@/form/ModelForm";
+import Field from "@/components/Field.astro";
+import Button from "@/components/Button.astro";
+
+interface Props {
+  csrfToken: string;
+  modelForm: ModelForm;
+  submitLabel: string;
+}
+
+const { csrfToken, modelForm, submitLabel } = Astro.props;
+const fields = modelForm.getFields();
+const errors = modelForm.getErrors();
+---
+
+{errors.form && <p class="admin-form__error" role="alert">{errors.form}</p>}
+
+<form method="POST" class="admin-form">
+  <input type="hidden" name="_csrf" value={csrfToken} />
+
+  {fields.map((field) => (
+    <Field field={field} error={errors[field.name]} />
+  ))}
+
+  <Button type="submit" label={submitLabel} />
+</form>

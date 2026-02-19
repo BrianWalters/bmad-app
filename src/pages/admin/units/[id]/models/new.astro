@@ -1,0 +1,54 @@
+---
+import { ModelForm } from "@/form/ModelForm";
+import { validateCsrfToken } from "@/auth/csrf";
+import { getUnitById } from "@/data/repo/unit-repository";
+import ModelAdminForm from "@/components/ModelAdminForm.astro";
+
+const session = Astro.locals.session!;
+const csrfToken = session.csrfToken;
+
+const id = Number(Astro.params.id);
+if (isNaN(id)) {
+  return new Response(null, { status: 404 });
+}
+
+const unit = getUnitById(id);
+if (!unit) {
+  return new Response(null, { status: 404 });
+}
+
+const modelForm = new ModelForm(id);
+
+if (Astro.request.method === "POST") {
+  const data = await Astro.request.formData();
+  const submittedCsrf = data.get("_csrf")?.toString() ?? "";
+
+  if (!validateCsrfToken(csrfToken, submittedCsrf)) {
+    modelForm.getErrors().form = "Invalid form submission. Please try again.";
+  } else if (modelForm.handleForm(data)) {
+    return Astro.redirect(`/admin/units/${id}/edit`);
+  }
+}
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="stylesheet" href="/styles.css" />
+    <title>Add Model to {unit.name} - Admin - aine-program</title>
+  </head>
+  <body>
+    <main class="page">
+      <h1>Add Model to {unit.name}</h1>
+
+      <p><a href={`/admin/units/${id}/edit`}>&larr; Back to {unit.name}</a></p>
+
+      <ModelAdminForm
+        csrfToken={csrfToken}
+        modelForm={modelForm}
+        submitLabel="Create Model"
+      />
+    </main>
+  </body>
+</html>

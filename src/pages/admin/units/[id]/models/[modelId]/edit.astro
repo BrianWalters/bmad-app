@@ -1,0 +1,74 @@
+---
+import { ModelForm } from "@/form/ModelForm";
+import { validateCsrfToken } from "@/auth/csrf";
+import { getUnitById } from "@/data/repo/unit-repository";
+import { deleteModelById } from "@/data/repo/model-repository";
+import ModelAdminForm from "@/components/ModelAdminForm.astro";
+import Button from "@/components/Button.astro";
+
+const session = Astro.locals.session!;
+const csrfToken = session.csrfToken;
+
+const id = Number(Astro.params.id);
+const modelId = Number(Astro.params.modelId);
+if (isNaN(id) || isNaN(modelId)) {
+  return new Response(null, { status: 404 });
+}
+
+const unit = getUnitById(id);
+if (!unit) {
+  return new Response(null, { status: 404 });
+}
+
+const modelForm = new ModelForm(id, modelId);
+
+if (!modelForm.exists()) {
+  return new Response(null, { status: 404 });
+}
+
+if (Astro.request.method === "POST") {
+  const data = await Astro.request.formData();
+  const submittedCsrf = data.get("_csrf")?.toString() ?? "";
+
+  if (!validateCsrfToken(csrfToken, submittedCsrf)) {
+    modelForm.getErrors().form = "Invalid form submission. Please try again.";
+  } else if (data.get("action") === "delete") {
+    deleteModelById(modelId);
+    return Astro.redirect(`/admin/units/${id}/edit`);
+  } else if (modelForm.handleForm(data)) {
+    return Astro.redirect(`/admin/units/${id}/edit`);
+  }
+}
+
+const modelName = modelForm.getValue("name") ?? "Model";
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="stylesheet" href="/styles.css" />
+    <title>Edit {modelName} - {unit.name} - Admin - aine-program</title>
+  </head>
+  <body>
+    <main class="page">
+      <h1>Edit {modelName}</h1>
+
+      <p><a href={`/admin/units/${id}/edit`}>&larr; Back to {unit.name}</a></p>
+
+      <ModelAdminForm
+        csrfToken={csrfToken}
+        modelForm={modelForm}
+        submitLabel="Save Changes"
+      />
+
+      <hr />
+
+      <form method="POST" onsubmit="return confirm('Are you sure you want to delete this model? This action cannot be undone.')">
+        <input type="hidden" name="_csrf" value={csrfToken} />
+        <input type="hidden" name="action" value="delete" />
+        <Button type="submit" label="Delete Model" variant="danger" />
+      </form>
+    </main>
+  </body>
+</html>
