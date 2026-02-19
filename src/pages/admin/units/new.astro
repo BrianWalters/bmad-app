@@ -1,73 +1,25 @@
 ---
-import type { FormField } from "../../../form/field";
-import { validateCsrfToken } from "../../../auth/csrf";
-import { unitSchema } from "../../../data/validation/unit";
-import { slugify } from "../../../data/orm/slugify";
-import { createUnit, isSlugAvailable } from "../../../data/repo/unit-repository";
+import { UnitForm } from "@/form/UnitForm";
+import { validateCsrfToken } from "@/auth/csrf";
 
 const session = Astro.locals.session!;
 const csrfToken = session.csrfToken;
 
-let errors: Record<string, string> = {};
-let formData: Record<string, string> = {};
+const unitForm = new UnitForm();
 
 if (Astro.request.method === "POST") {
   const data = await Astro.request.formData();
   const submittedCsrf = data.get("_csrf")?.toString() ?? "";
 
   if (!validateCsrfToken(csrfToken, submittedCsrf)) {
-    errors.form = "Invalid form submission. Please try again.";
-  } else {
-    const raw = {
-      name: data.get("name")?.toString() ?? "",
-      movement: data.get("movement")?.toString() ?? "",
-      toughness: data.get("toughness")?.toString() ?? "",
-      save: data.get("save")?.toString() ?? "",
-      wounds: data.get("wounds")?.toString() ?? "",
-      leadership: data.get("leadership")?.toString() ?? "",
-      objectiveControl: data.get("objectiveControl")?.toString() ?? "",
-      invulnerabilitySave: data.get("invulnerabilitySave")?.toString() ?? "",
-      description: data.get("description")?.toString() ?? "",
-      keywords: data.get("keywords")?.toString() ?? "",
-    };
-
-    formData = raw;
-
-    const parsed = unitSchema.safeParse(raw);
-
-    if (!parsed.success) {
-      for (const issue of parsed.error.issues) {
-        const field = issue.path[0]?.toString();
-        if (field && !errors[field]) {
-          errors[field] = issue.message;
-        }
-      }
-    } else {
-      const slug = slugify(parsed.data.name);
-
-      if (!isSlugAvailable(slug)) {
-        errors.name = "A unit with a similar name already exists. Please choose a different name.";
-      } else {
-        createUnit({
-          ...parsed.data,
-          slug,
-        });
-        return Astro.redirect("/admin");
-      }
-    }
+    unitForm.getErrors().form = "Invalid form submission. Please try again.";
+  } else if (unitForm.handleForm(data)) {
+    return Astro.redirect("/admin");
   }
 }
 
-const fields: Array<FormField> = [
-  { name: "name", label: "Name", required: true, type: "text" },
-  { name: "movement", label: "Movement", required: true, type: "number" },
-  { name: "toughness", label: "Toughness", required: true, type: "number" },
-  { name: "save", label: "Save", required: true, type: "number" },
-  { name: "wounds", label: "Wounds", required: true, type: "number" },
-  { name: "leadership", label: "Leadership", required: true, type: "text" },
-  { name: "objectiveControl", label: "Objective Control", required: true, type: "number" },
-  { name: "invulnerabilitySave", label: "Invulnerability Save", required: true, type: "number" },
-];
+const fields = unitForm.getFields();
+const errors = unitForm.getErrors();
 ---
 
 <html lang="en">
@@ -98,7 +50,7 @@ const fields: Array<FormField> = [
               name={field.name}
               type={field.type}
               class="admin-form__input"
-              value={formData[field.name] ?? ""}
+              value={field.value ?? ""}
               aria-describedby={errors[field.name] ? `${field.name}-error` : undefined}
             />
             {errors[field.name] && (
@@ -117,7 +69,7 @@ const fields: Array<FormField> = [
             rows="4"
             class="admin-form__textarea"
             aria-describedby={errors.description ? "description-error" : undefined}
-          >{formData.description ?? ""}</textarea>
+          >{unitForm.getValue("description") ?? ""}</textarea>
           {errors.description && (
             <p id="description-error" class="admin-form__error">{errors.description}</p>
           )}
@@ -129,7 +81,7 @@ const fields: Array<FormField> = [
             id="keywords"
             name="keywords"
             class="admin-form__input"
-            value={formData.keywords ?? ""}
+            value={unitForm.getValue("keywords") ?? ""}
             placeholder="e.g. Infantry, Imperium, Adeptus Astartes"
             aria-describedby={errors.keywords ? "keywords-error" : undefined}
           />
