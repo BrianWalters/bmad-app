@@ -1,5 +1,6 @@
 ---
 import type { UnitForm } from "@/form/UnitForm";
+import Field from "@/components/Field.astro";
 
 interface Props {
   csrfToken: string;
@@ -18,55 +19,37 @@ const errors = unitForm.getErrors();
   <input type="hidden" name="_csrf" value={csrfToken} />
 
   {fields.map((field) => (
-    <div class="admin-form__field">
-      <label for={field.name} class="admin-form__label">
-        {field.label}{field.required && " *"}
-      </label>
-      <input
-        id={field.name}
-        name={field.name}
-        type={field.type}
-        class="admin-form__input"
-        value={field.value ?? ""}
-        required={field.required}
-        aria-describedby={errors[field.name] ? `${field.name}-error` : undefined}
-      />
-      {errors[field.name] && (
-        <p id={`${field.name}-error`} class="admin-form__error">
-          {errors[field.name]}
-        </p>
-      )}
-    </div>
+    <Field field={field} error={errors[field.name]} />
   ))}
 
-  <div class="admin-form__field">
-    <label for="description" class="admin-form__label">Description</label>
+  <div class="field">
+    <label for="description" class="field__label">Description</label>
     <textarea
       id="description"
       name="description"
       rows="4"
-      class="admin-form__textarea"
+      class="field__textarea"
       aria-describedby={errors.description ? "description-error" : undefined}
     >{unitForm.getValue("description") ?? ""}</textarea>
     {errors.description && (
-      <p id="description-error" class="admin-form__error">{errors.description}</p>
+      <p id="description-error" class="field__error">{errors.description}</p>
     )}
   </div>
 
-  <div class="admin-form__field">
-    <label for="keywords" class="admin-form__label">Keywords</label>
+  <div class="field">
+    <label for="keywords" class="field__label">Keywords</label>
     <input
       id="keywords"
       name="keywords"
-      class="admin-form__input"
+      class="field__input"
       value={unitForm.getValue("keywords") ?? ""}
       placeholder="e.g. Infantry, Imperium, Adeptus Astartes"
       aria-describedby={errors.keywords ? "keywords-error" : undefined}
     />
     {errors.keywords && (
-      <p id="keywords-error" class="admin-form__error">{errors.keywords}</p>
+      <p id="keywords-error" class="field__error">{errors.keywords}</p>
     )}
   </div>
 
-  <button type="submit" class="admin-form__submit">{submitLabel}</button>
+  <button type="submit" class="admin-form__submit" formnovalidate>{submitLabel}</button>
 </form>

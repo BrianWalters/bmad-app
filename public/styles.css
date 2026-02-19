@@ -24,18 +24,18 @@ a { color: var(--color-accent); }
 a:hover { color: var(--color-accent-dark); }
 a:focus { outline: 2px solid var(--color-accent); outline-offset: 2px; }
 
-/* Admin form */
-.admin-form__field { margin-bottom: 1rem; }
+/* Field block */
+.field { margin-bottom: 1rem; }
 
-.admin-form__label {
+.field__label {
   display: block;
   font-weight: 700;
   margin-bottom: 0.25rem;
 }
 
-.admin-form__input,
-.admin-form__textarea,
-.admin-form__select {
+.field__input,
+.field__textarea,
+.field__select {
   font-family: inherit;
   font-size: 1rem;
   padding: 0.5rem;
@@ -44,15 +44,22 @@ a:focus { outline: 2px solid var(--color-accent); outline-offset: 2px; }
   max-width: 40rem;
 }
 
-.admin-form__textarea { min-height: 6rem; resize: vertical; }
+.field__textarea { min-height: 6rem; resize: vertical; }
 
-.admin-form__input:focus,
-.admin-form__textarea:focus,
-.admin-form__select:focus {
+.field__input:focus,
+.field__textarea:focus,
+.field__select:focus {
   outline: 2px solid var(--color-accent);
   border-color: var(--color-accent);
 }
 
+.field__error {
+  color: var(--color-accent);
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+/* Admin form */
 .admin-form__error {
   color: var(--color-accent);
   font-size: 0.875rem;

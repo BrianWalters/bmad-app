@@ -1,0 +1,30 @@
+---
+import type { FormField } from "@/form/field";
+
+interface Props {
+  field: FormField;
+  error?: string;
+}
+
+const { field, error } = Astro.props;
+---
+
+<div class="field">
+  <label for={field.name} class="field__label">
+    {field.label}{field.required && " *"}
+  </label>
+  <input
+    id={field.name}
+    name={field.name}
+    type={field.type}
+    class="field__input"
+    value={field.value ?? ""}
+    required={field.required}
+    aria-describedby={error ? `${field.name}-error` : undefined}
+  />
+  {error && (
+    <p id={`${field.name}-error`} class="field__error">
+      {error}
+    </p>
+  )}
+</div>

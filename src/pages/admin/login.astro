@@ -72,34 +72,34 @@ if (Astro.request.method === "POST") {
       <form method="POST" class="admin-form">
         <input type="hidden" name="_csrf" value={formCsrfToken} />
 
-        <div class="admin-form__field">
-          <label for="username" class="admin-form__label">Username</label>
+        <div class="field">
+          <label for="username" class="field__label">Username</label>
           <input
             id="username"
             name="username"
             type="text"
-            class="admin-form__input"
+            class="field__input"
             value={formData.username ?? ""}
             autocomplete="username"
             aria-describedby={errors.username ? "username-error" : undefined}
           />
           {errors.username && (
-            <p id="username-error" class="admin-form__error">{errors.username}</p>
+            <p id="username-error" class="field__error">{errors.username}</p>
           )}
         </div>
 
-        <div class="admin-form__field">
-          <label for="password" class="admin-form__label">Password</label>
+        <div class="field">
+          <label for="password" class="field__label">Password</label>
           <input
             id="password"
             name="password"
             type="password"
-            class="admin-form__input"
+            class="field__input"
             autocomplete="current-password"
             aria-describedby={errors.password ? "password-error" : undefined}
           />
           {errors.password && (
-            <p id="password-error" class="admin-form__error">{errors.password}</p>
+            <p id="password-error" class="field__error">{errors.password}</p>
           )}
         </div>
 
