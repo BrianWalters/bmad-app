@@ -4,4 +4,5 @@ export interface FormField {
   required: boolean;
   type: astroHTML.JSX.HTMLInputTypeAttribute;
   value: string | null;
+  min?: number;
 }

@@ -3,9 +3,10 @@ import { ModelForm } from "@/form/ModelForm";
 import { validateCsrfToken } from "@/auth/csrf";
 import { getUnitById } from "@/data/repo/unit-repository";
 import { deleteModelById } from "@/data/repo/model-repository";
-import { getEquipmentOptionsForModel, setDefaultEquipment, unsetDefaultEquipment, getUnassociatedEquipmentOptions, associateEquipmentOptionWithModel } from "@/data/repo/equipment-option-repository";
+import { getEquipmentOptionsForModel, getEquipmentOptionById, setDefaultEquipment, unsetDefaultEquipment, getUnassociatedEquipmentOptions, associateEquipmentOptionWithModel, isEquipmentOptionAssociatedWithModel } from "@/data/repo/equipment-option-repository";
 import ModelAdminForm from "@/components/ModelAdminForm.astro";
 import Button from "@/components/Button.astro";
+import EquipmentOptionsSelect from "@/components/EquipmentOptionsSelect.astro";
 
 const session = Astro.locals.session!;
 const csrfToken = session.csrfToken;
@@ -44,7 +45,7 @@ if (Astro.request.method === "POST") {
     return Astro.redirect(`/admin/units/${id}/models/${modelId}/edit`);
   } else if (data.get("action") === "add-existing") {
     const equipmentId = Number(data.get("equipmentId"));
-    if (!isNaN(equipmentId)) {
+    if (!isNaN(equipmentId) && equipmentId > 0 && getEquipmentOptionById(equipmentId) && !isEquipmentOptionAssociatedWithModel(modelId, equipmentId)) {
       associateEquipmentOptionWithModel(modelId, equipmentId);
     }
     return Astro.redirect(`/admin/units/${id}/models/${modelId}/edit`);
@@ -130,11 +131,11 @@ const unassociatedOptions = getUnassociatedEquipmentOptions(modelId);
                     <td>{option.damageMin}–{option.damageMax}</td>
                     <td>
                       <a href={`/admin/units/${id}/models/${modelId}/equipment/${option.id}/edit`}>Edit</a>
-                      <form method="POST" style="display:inline;">
+                      <form method="POST" class="admin-form--inline">
                         <input type="hidden" name="_csrf" value={csrfToken} />
                         <input type="hidden" name="action" value={option.isDefault === 1 ? "unset-default" : "set-default"} />
                         <input type="hidden" name="equipmentId" value={option.id} />
-                        <button type="submit">{option.isDefault === 1 ? "Unset Default" : "Set as Default"}</button>
+                        <button type="submit" aria-label={option.isDefault === 1 ? `Unset Default for ${option.name}` : `Set ${option.name} as Default`}>{option.isDefault === 1 ? "Unset Default" : "Set as Default"}</button>
                       </form>
                     </td>
                   </tr>
@@ -146,20 +147,7 @@ const unassociatedOptions = getUnassociatedEquipmentOptions(modelId);
 
         <p><a href={`/admin/units/${id}/models/${modelId}/equipment/new`}>Create New Equipment Option</a></p>
 
-        {unassociatedOptions.length > 0 && (
-          <form method="POST" class="admin-form">
-            <input type="hidden" name="_csrf" value={csrfToken} />
-            <input type="hidden" name="action" value="add-existing" />
-            <label for="equipmentId" class="field__label">Add Existing Equipment Option</label>
-            <select id="equipmentId" name="equipmentId" class="field__input" required>
-              <option value="">— Select —</option>
-              {unassociatedOptions.map((opt) => (
-                <option value={opt.id}>{opt.name}</option>
-              ))}
-            </select>
-            <Button type="submit" label="Add to Model" />
-          </form>
-        )}
+        <EquipmentOptionsSelect csrfToken={csrfToken} options={unassociatedOptions} />
       </section>
     </main>
   </body>

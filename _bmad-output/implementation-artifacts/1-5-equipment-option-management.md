@@ -1,6 +1,6 @@
 # Story 1.5: Equipment Option Management
 
-Status: review
+Status: done
 
 ## Story
 
@@ -442,19 +442,33 @@ claude-4.6-opus-high-thinking
 - Model edit page extended with equipment options table (Name, Range, A, BS/WS, S, AP, D, Actions columns), inline "Set as Default" forms, and empty/no-default states
 - All 94 tests pass (14 validation + 9 form + 71 existing)
 
+### Code Review Fixes Applied
+
+- Added `min` property to `FormField` interface and `Field.astro`; set appropriate `min` values on all EquipmentOptionForm number fields (H1)
+- Updated architecture.md and epics.md to reflect many-to-many join table design instead of `defaultEquipmentId` FK (H2)
+- Added server-side validation guards on `add-existing` action to prevent FK/PK constraint violations (H3)
+- Replaced N+1 `getEquipmentOptionSummaryForModel` loop with batched `getEquipmentOptionSummariesForModels` query (M4)
+- Replaced inline `style="display:inline;"` with BEM class `admin-form--inline` (L8)
+- Added `aria-label` with equipment option name to Set/Unset Default buttons (L10)
+- Extracted equipment options select form into `EquipmentOptionsSelect.astro` component with BEM block (refactor)
+
 ### File List
 
 - src/data/orm/schema.ts (modified — added equipmentOption + modelEquipmentOption tables)
 - src/data/validation/equipment-option.ts (created — Zod schema with stat fields + damageMax >= damageMin refine)
 - src/data/validation/equipment-option.test.ts (created — 14 validation tests)
-- src/data/repo/equipment-option-repository.ts (created — CRUD + default management + association check)
-- src/form/EquipmentOptionForm.ts (created — form class with ownership validation via join table)
+- src/data/repo/equipment-option-repository.ts (created — CRUD + default management + association check + batched summaries)
+- src/form/field.ts (modified — added optional min property to FormField interface)
+- src/form/EquipmentOptionForm.ts (created — form class with ownership validation via join table + min values on fields)
 - src/form/EquipmentOptionForm.test.ts (created — 9 form tests)
+- src/components/Field.astro (modified — renders min attribute on input)
 - src/components/EquipmentOptionAdminForm.astro (created — form component for equipment option fields)
+- src/components/EquipmentOptionsSelect.astro (created — add existing equipment option select component)
 - src/pages/admin/units/[unitId]/models/[modelId]/equipment/new.astro (created — add equipment option page)
 - src/pages/admin/units/[unitId]/models/[modelId]/equipment/[equipmentId]/edit.astro (created — edit/remove equipment option page)
-- src/pages/admin/units/[unitId]/models/[modelId]/edit.astro (modified — added equipment options section + set-default/unset-default handler)
-- src/pages/admin/units/[unitId]/edit.astro (modified — models list now shows equipment option count and default names)
+- src/pages/admin/units/[unitId]/models/[modelId]/edit.astro (modified — equipment options section, set/unset-default, add-existing with validation, aria-labels, BEM class)
+- src/pages/admin/units/[unitId]/edit.astro (modified — batched equipment option summaries)
+- public/styles.css (modified — added equipment-options-select and admin-form--inline BEM blocks)
 - drizzle/0002_rapid_red_wolf.sql (generated — equipment_option + model_equipment_option migration)
 - drizzle/meta/_journal.json (modified — migration journal entry)
 - drizzle/meta/0002_snapshot.json (generated — schema snapshot)

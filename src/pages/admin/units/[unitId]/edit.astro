@@ -3,7 +3,7 @@ import { UnitForm } from "@/form/UnitForm";
 import { validateCsrfToken } from "@/auth/csrf";
 import { deleteUnitById } from "@/data/repo/unit-repository";
 import { getModelsForUnit } from "@/data/repo/model-repository";
-import { getEquipmentOptionSummaryForModel } from "@/data/repo/equipment-option-repository";
+import { getEquipmentOptionSummariesForModels } from "@/data/repo/equipment-option-repository";
 import UnitAdminForm from "@/components/UnitAdminForm.astro";
 import Button from "@/components/Button.astro";
 
@@ -37,6 +37,7 @@ if (Astro.request.method === "POST") {
 
 const unitName = unitForm.getValue("name") ?? "Unit";
 const models = getModelsForUnit(id);
+const equipmentSummaries = getEquipmentOptionSummariesForModels(models.map((m) => m.id));
 ---
 
 <html lang="en">
@@ -75,7 +76,7 @@ const models = getModelsForUnit(id);
         ) : (
           <ol>
             {models.map((m) => {
-              const summary = getEquipmentOptionSummaryForModel(m.id);
+              const summary = equipmentSummaries[m.id] ?? { total: 0, defaultNames: [] };
               return (
                 <li>
                   {m.name} ({summary.total} equipment option{summary.total !== 1 && "s"}{summary.defaultNames.length > 0 && `, defaults: ${summary.defaultNames.join(", ")}`})

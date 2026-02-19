@@ -20,6 +20,7 @@ const { field, error } = Astro.props;
     class="field__input"
     value={field.value ?? ""}
     required={field.required}
+    min={field.min}
     aria-describedby={error ? `${field.name}-error` : undefined}
   />
   {error && (

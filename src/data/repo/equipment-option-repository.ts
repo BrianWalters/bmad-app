@@ -1,4 +1,4 @@
-import { eq, and, asc, desc, notInArray } from "drizzle-orm";
+import { eq, and, asc, desc, notInArray, inArray } from "drizzle-orm";
 import { db } from "@/data/orm/connection";
 import { equipmentOption, modelEquipmentOption } from "@/data/orm/schema";
 import type { DeleteResult } from "@/data/repo/unit-repository";
@@ -161,6 +161,41 @@ export function getEquipmentOptionSummaryForModel(modelId: number) {
       .map((r) => r.name)
       .sort(),
   };
+}
+
+export function getEquipmentOptionSummariesForModels(
+  modelIds: number[],
+): Record<number, { total: number; defaultNames: string[] }> {
+  if (modelIds.length === 0) return {};
+
+  const rows = db
+    .select({
+      modelId: modelEquipmentOption.modelId,
+      name: equipmentOption.name,
+      isDefault: modelEquipmentOption.isDefault,
+    })
+    .from(modelEquipmentOption)
+    .innerJoin(
+      equipmentOption,
+      eq(modelEquipmentOption.equipmentOptionId, equipmentOption.id),
+    )
+    .where(inArray(modelEquipmentOption.modelId, modelIds))
+    .all();
+
+  const result: Record<number, { total: number; defaultNames: string[] }> = {};
+  for (const id of modelIds) {
+    result[id] = { total: 0, defaultNames: [] };
+  }
+  for (const row of rows) {
+    result[row.modelId].total++;
+    if (row.isDefault === 1) {
+      result[row.modelId].defaultNames.push(row.name);
+    }
+  }
+  for (const id of modelIds) {
+    result[id].defaultNames.sort();
+  }
+  return result;
 }
 
 export function getUnassociatedEquipmentOptions(modelId: number) {

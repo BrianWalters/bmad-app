@@ -180,9 +180,9 @@ cd aine-program && npx astro add node
 
 **Data Modeling:**
 - Drizzle ORM schema defines the Unit > Model > Equipment Option hierarchy
-- Model table has a `defaultEquipmentId` foreign key pointing to its default equipment option
-- Equipment options table contains all available options per model; the default is identified by the FK on the model, not a boolean flag
-- Rationale: cleaner normalization, single source of truth for the default, no risk of multiple rows marked as default
+- Equipment options have a many-to-many relationship with models via a `model_equipment_option` association table with a composite primary key (`model_id`, `equipment_option_id`)
+- The association table carries an `is_default` integer flag (0 or 1) per association row; a model can have multiple default equipment options simultaneously
+- Rationale: equipment options can be shared across models, defaults are tracked per-association without constraining to a single default, and the join table cleanly cascades on deletion of either side
 - Unit table has a `slug` column with a unique index; slugs are auto-generated from the unit name but editable by admin in forms
 - Slug uniqueness enforced at the DB level and validated before save
 
@@ -327,7 +327,7 @@ cd aine-program && npx astro add node
 
 **Database Naming Conventions:**
 - Table names: **singular, snake_case** — `unit`, `model`, `equipment_option`, `session`
-- Column names: **snake_case** — `default_equipment_id`, `created_at`, `session_id`
+- Column names: **snake_case** — `is_default`, `created_at`, `session_id`
 - Foreign keys: **snake_case referencing table** — `unit_id`, `model_id`
 - Indexes: **`idx_{table}_{column}`** — `idx_unit_slug`, `idx_session_expires_at`
 - Drizzle maps snake_case DB columns to camelCase TypeScript properties automatically

@@ -1,0 +1,25 @@
+---
+import Button from "@/components/Button.astro";
+
+interface Props {
+  csrfToken: string;
+  options: Array<{ id: number; name: string }>;
+}
+
+const { csrfToken, options } = Astro.props;
+---
+
+{options.length > 0 && (
+  <form method="POST" class="equipment-options-select">
+    <input type="hidden" name="_csrf" value={csrfToken} />
+    <input type="hidden" name="action" value="add-existing" />
+    <label for="equipmentId" class="equipment-options-select__label">Add Existing Equipment Option</label>
+    <select id="equipmentId" name="equipmentId" class="equipment-options-select__input" required>
+      <option value="">— Select —</option>
+      {options.map((opt) => (
+        <option value={opt.id}>{opt.name}</option>
+      ))}
+    </select>
+    <Button type="submit" label="Add to Model" />
+  </form>
+)}

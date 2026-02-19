@@ -69,7 +69,7 @@ NFR14: Semantic HTML with logical heading hierarchy
 From Architecture:
 - Starter template: Astro via `npm create astro@latest` with `@astrojs/node` adapter (first implementation story)
 - Database: SQLite via better-sqlite3 with Drizzle ORM, schema-first migrations via Drizzle Kit
-- Data model: Unit > Model > Equipment Option hierarchy; `defaultEquipmentId` FK on model table
+- Data model: Unit > Model > Equipment Option hierarchy; many-to-many via `model_equipment_option` association table with `is_default` flag
 - Slug column on unit table with unique index, auto-generated from name, editable by admin
 - Zod validation on all admin form inputs, aligned with Drizzle schemas
 - HTTP Cache-Control headers on public pages; `no-store` on admin pages
@@ -286,9 +286,9 @@ So that players can see all available equipment choices and which is the default
 
 **Acceptance Criteria:**
 
-**Given** the equipment_option table exists with a foreign key to the model table, and the model table has a `default_equipment_id` foreign key to equipment_option
-**When** an admin is managing models on the create or edit unit page
-**Then** each model section includes fields for managing equipment options
+**Given** the `equipment_option` table and `model_equipment_option` association table exist
+**When** an admin is on the model edit page
+**Then** a section for managing equipment options is displayed below the model form
 
 **Given** an admin adds an equipment option to a model
 **When** the option fields are filled in and the form is submitted
@@ -300,11 +300,11 @@ So that players can see all available equipment choices and which is the default
 
 **Given** an admin removes an equipment option from a model
 **When** the form is submitted
-**Then** the equipment option is deleted from the database, and if it was the default, the `default_equipment_id` on the model is cleared (FR22)
+**Then** the association is deleted from the join table, and if it was marked as default, the default is cleared (FR22)
 
 **Given** an admin designates an equipment option as the model's default
 **When** the form is submitted
-**Then** the model's `default_equipment_id` is set to that equipment option's ID
+**Then** the `is_default` flag is set on that association row in `model_equipment_option`
 
 **Given** a model has no default equipment set
 **When** the admin views the model in the form

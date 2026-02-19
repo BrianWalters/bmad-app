@@ -56,13 +56,13 @@ export class EquipmentOptionForm {
   getFields(): Array<FormField> {
     return [
       { name: "name", label: "Name", required: true, type: "text", value: this.formData.name ?? null },
-      { name: "range", label: "Range", required: false, type: "number", value: this.formData.range ?? null },
-      { name: "attacks", label: "Attacks", required: true, type: "number", value: this.formData.attacks ?? null },
-      { name: "skill", label: "BS/WS", required: true, type: "number", value: this.formData.skill ?? null },
-      { name: "strength", label: "Strength", required: true, type: "number", value: this.formData.strength ?? null },
-      { name: "armorPiercing", label: "Armor Piercing", required: false, type: "number", value: this.formData.armorPiercing ?? null },
-      { name: "damageMin", label: "Damage Min", required: false, type: "number", value: this.formData.damageMin ?? null },
-      { name: "damageMax", label: "Damage Max", required: false, type: "number", value: this.formData.damageMax ?? null },
+      { name: "range", label: "Range", required: false, type: "number", value: this.formData.range ?? null, min: 0 },
+      { name: "attacks", label: "Attacks", required: true, type: "number", value: this.formData.attacks ?? null, min: 1 },
+      { name: "skill", label: "BS/WS", required: true, type: "number", value: this.formData.skill ?? null, min: 1 },
+      { name: "strength", label: "Strength", required: true, type: "number", value: this.formData.strength ?? null, min: 1 },
+      { name: "armorPiercing", label: "Armor Piercing", required: false, type: "number", value: this.formData.armorPiercing ?? null, min: 0 },
+      { name: "damageMin", label: "Damage Min", required: false, type: "number", value: this.formData.damageMin ?? null, min: 1 },
+      { name: "damageMax", label: "Damage Max", required: false, type: "number", value: this.formData.damageMax ?? null, min: 1 },
     ];
   }
 
