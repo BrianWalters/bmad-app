@@ -3,6 +3,7 @@ import { UnitForm } from "@/form/UnitForm";
 import { validateCsrfToken } from "@/auth/csrf";
 import { deleteUnitById } from "@/data/repo/unit-repository";
 import { getModelsForUnit } from "@/data/repo/model-repository";
+import { getEquipmentOptionSummaryForModel } from "@/data/repo/equipment-option-repository";
 import UnitAdminForm from "@/components/UnitAdminForm.astro";
 import Button from "@/components/Button.astro";
 
@@ -73,11 +74,15 @@ const models = getModelsForUnit(id);
           <p>No models yet.</p>
         ) : (
           <ol>
-            {models.map((m) => (
-              <li>
-                {m.name} — <a href={`/admin/units/${id}/models/${m.id}/edit`}>Edit</a>
-              </li>
-            ))}
+            {models.map((m) => {
+              const summary = getEquipmentOptionSummaryForModel(m.id);
+              return (
+                <li>
+                  {m.name} ({summary.total} equipment option{summary.total !== 1 && "s"}{summary.defaultNames.length > 0 && `, defaults: ${summary.defaultNames.join(", ")}`})
+                  — <a href={`/admin/units/${id}/models/${m.id}/edit`}>Edit</a>
+                </li>
+              );
+            })}
           </ol>
         )}
         <p><a href={`/admin/units/${id}/models/new`}>Add Model</a></p>

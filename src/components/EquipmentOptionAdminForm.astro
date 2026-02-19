@@ -1,0 +1,27 @@
+---
+import type { EquipmentOptionForm } from "@/form/EquipmentOptionForm";
+import Field from "@/components/Field.astro";
+import Button from "@/components/Button.astro";
+
+interface Props {
+  csrfToken: string;
+  equipmentOptionForm: EquipmentOptionForm;
+  submitLabel: string;
+}
+
+const { csrfToken, equipmentOptionForm, submitLabel } = Astro.props;
+const fields = equipmentOptionForm.getFields();
+const errors = equipmentOptionForm.getErrors();
+---
+
+{errors.form && <p class="admin-form__error" role="alert">{errors.form}</p>}
+
+<form method="POST" class="admin-form">
+  <input type="hidden" name="_csrf" value={csrfToken} />
+
+  {fields.map((field) => (
+    <Field field={field} error={errors[field.name]} />
+  ))}
+
+  <Button type="submit" label={submitLabel} />
+</form>

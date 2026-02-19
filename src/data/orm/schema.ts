@@ -61,6 +61,37 @@ export const model = sqliteTable("model", {
     .default(sql`(datetime('now'))`),
 });
 
+export const equipmentOption = sqliteTable("equipment_option", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  name: text("name").notNull(),
+  range: integer("range").notNull().default(0),
+  attacks: integer("attacks").notNull(),
+  skill: integer("skill").notNull(),
+  strength: integer("strength").notNull(),
+  armorPiercing: integer("armor_piercing").notNull().default(0),
+  damageMin: integer("damage_min").notNull().default(1),
+  damageMax: integer("damage_max").notNull().default(1),
+  createdAt: text("created_at")
+    .notNull()
+    .default(sql`(datetime('now'))`),
+});
+
+export const modelEquipmentOption = sqliteTable(
+  "model_equipment_option",
+  {
+    modelId: integer("model_id")
+      .notNull()
+      .references(() => model.id, { onDelete: "cascade" }),
+    equipmentOptionId: integer("equipment_option_id")
+      .notNull()
+      .references(() => equipmentOption.id, { onDelete: "cascade" }),
+    isDefault: integer("is_default").notNull().default(0),
+  },
+  (table) => [
+    primaryKey({ columns: [table.modelId, table.equipmentOptionId] }),
+  ],
+);
+
 export const keyword = sqliteTable("keyword", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull().unique(),

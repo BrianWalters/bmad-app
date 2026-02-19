@@ -15,6 +15,13 @@
       "when": 1771527326835,
       "tag": "0001_medical_talkback",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1771530382227,
+      "tag": "0002_rapid_red_wolf",
+      "breakpoints": true
     }
   ]
 }

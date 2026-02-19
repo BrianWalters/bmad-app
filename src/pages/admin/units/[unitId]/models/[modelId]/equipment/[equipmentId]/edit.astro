@@ -1,0 +1,81 @@
+---
+import { EquipmentOptionForm } from "@/form/EquipmentOptionForm";
+import { validateCsrfToken } from "@/auth/csrf";
+import { getUnitById } from "@/data/repo/unit-repository";
+import { getModelById } from "@/data/repo/model-repository";
+import { removeEquipmentOptionFromModel } from "@/data/repo/equipment-option-repository";
+import EquipmentOptionAdminForm from "@/components/EquipmentOptionAdminForm.astro";
+import Button from "@/components/Button.astro";
+
+const session = Astro.locals.session!;
+const csrfToken = session.csrfToken;
+
+const unitId = Number(Astro.params.unitId);
+const modelId = Number(Astro.params.modelId);
+const equipmentId = Number(Astro.params.equipmentId);
+if (isNaN(unitId) || isNaN(modelId) || isNaN(equipmentId)) {
+  return new Response(null, { status: 404 });
+}
+
+const unit = getUnitById(unitId);
+if (!unit) {
+  return new Response(null, { status: 404 });
+}
+
+const model = getModelById(modelId);
+if (!model || model.unitId !== unitId) {
+  return new Response(null, { status: 404 });
+}
+
+const equipmentOptionForm = new EquipmentOptionForm(modelId, equipmentId);
+
+if (!equipmentOptionForm.exists()) {
+  return new Response(null, { status: 404 });
+}
+
+if (Astro.request.method === "POST") {
+  const data = await Astro.request.formData();
+  const submittedCsrf = data.get("_csrf")?.toString() ?? "";
+
+  if (!validateCsrfToken(csrfToken, submittedCsrf)) {
+    equipmentOptionForm.getErrors().form = "Invalid form submission. Please try again.";
+  } else if (data.get("action") === "delete") {
+    removeEquipmentOptionFromModel(modelId, equipmentId);
+    return Astro.redirect(`/admin/units/${unitId}/models/${modelId}/edit`);
+  } else if (equipmentOptionForm.handleForm(data)) {
+    return Astro.redirect(`/admin/units/${unitId}/models/${modelId}/edit`);
+  }
+}
+
+const optionName = equipmentOptionForm.getValue("name") ?? "Equipment Option";
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="stylesheet" href="/styles.css" />
+    <title>Edit {optionName} - {model.name} - Admin - aine-program</title>
+  </head>
+  <body>
+    <main class="page">
+      <h1>Edit {optionName}</h1>
+
+      <p><a href={`/admin/units/${unitId}/models/${modelId}/edit`}>&larr; Back to {model.name}</a></p>
+
+      <EquipmentOptionAdminForm
+        csrfToken={csrfToken}
+        equipmentOptionForm={equipmentOptionForm}
+        submitLabel="Save Changes"
+      />
+
+      <hr />
+
+      <form method="POST" onsubmit="return confirm('Are you sure you want to remove this equipment option? This action cannot be undone.')">
+        <input type="hidden" name="_csrf" value={csrfToken} />
+        <input type="hidden" name="action" value="delete" />
+        <Button type="submit" label="Remove Equipment Option" variant="danger" />
+      </form>
+    </main>
+  </body>
+</html>

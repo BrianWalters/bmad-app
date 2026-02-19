@@ -1,6 +1,6 @@
 # Story 1.5: Equipment Option Management
 
-Status: ready-for-dev
+Status: review
 
 ## Story
 
@@ -26,46 +26,54 @@ So that players can see all available equipment choices and which is the default
    **When** the form is submitted
    **Then** the association is deleted from the join table, and if it was the default, the default is cleared (FR22)
 
-5. **Given** an admin designates an equipment option as the model's default
+5. **Given** an admin toggles the default status of an equipment option
    **When** the form is submitted
-   **Then** the `is_default` flag is set on that association row (and cleared on any previous default for the same model)
+   **Then** the `is_default` flag is toggled on that association row (multiple equipment options per model may be marked as default simultaneously)
 
 6. **Given** a model has no default equipment set
    **When** the admin views the model edit page
-   **Then** no equipment option is marked as default, prompting the admin to choose one
+   **Then** no equipment option is marked as default
 
 7. **Given** a model has one or more equipment options
    **When** the admin views the model edit page
-   **Then** all equipment options are displayed in a single table with columns Name, Range, A, BS/WS, S, AP, D (showing damageMin–damageMax), the default option row appears first, and each row includes "Edit" and "Set as Default" actions
+   **Then** all equipment options are displayed in a single table with columns Name, Range, A, BS/WS, S, AP, D (showing damageMin–damageMax), default options appear first, and each row includes "Edit" and a toggle action ("Set as Default" or "Unset Default")
+
+8. **Given** the unit edit page lists models for that unit
+   **When** the admin views the unit edit page
+   **Then** each model shows the total number of equipment options and the names of any equipment options marked as default
+
+9. **Given** an admin is editing a model
+   **When** existing equipment options (not already associated with the model) are available
+   **Then** the admin can select an existing equipment option and add it to the model
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Add `equipment_option` and `model_equipment_option` tables to schema, generate migration (AC: #1)
-  - [ ] 1.1 Add `equipment_option` table to `src/data/orm/schema.ts` with columns: `id` (PK auto-increment), `name` (text, not null), `range` (integer, not null, default 0), `attacks` (integer, not null), `skill` (integer, not null), `strength` (integer, not null), `armorPiercing` (integer `armor_piercing`, not null, default 0), `damageMin` (integer `damage_min`, not null, default 1), `damageMax` (integer `damage_max`, not null, default 1), `created_at` (text, not null, default `datetime('now')`)
-  - [ ] 1.2 Add `model_equipment_option` join table to `src/data/orm/schema.ts` with columns: `modelId` (integer FK to `model.id`, `onDelete: "cascade"`, not null), `equipmentOptionId` (integer FK to `equipment_option.id`, `onDelete: "cascade"`, not null), `isDefault` (integer, not null, default 0); composite primary key on (`modelId`, `equipmentOptionId`)
-  - [ ] 1.3 Run `npm run generate` to create a new Drizzle migration
-  - [ ] 1.4 Verify migration SQL: `model_equipment_option` has CASCADE on both FKs, composite PK, and `is_default` column with default 0
-  - [ ] 1.5 Run `npm run migrate` to apply the migration
-- [ ] Task 2: Create equipment option Zod validation schema (AC: #2)
-  - [ ] 2.1 Create `src/data/validation/equipment-option.ts` with `equipmentOptionSchema`: `name` (trimmed string, `.trim().min(1)`), `range` (coerced integer, min 0, default 0), `attacks` (coerced integer, min 1), `skill` (coerced integer, min 1), `strength` (coerced integer, min 1), `armorPiercing` (coerced integer, min 0, default 0), `damageMin` (coerced integer, min 1, default 1), `damageMax` (coerced integer, min 1, default 1); add `.refine()` to enforce `damageMax >= damageMin`
-  - [ ] 2.2 Create `src/data/validation/equipment-option.test.ts` — test valid input with all fields, valid input with defaults only, missing required fields, whitespace-only name, damageMax < damageMin rejection, negative values rejected
-- [ ] Task 3: Create equipment option repository (AC: #2, #3, #4, #5)
-  - [ ] 3.1 Create `src/data/repo/equipment-option-repository.ts` with functions: `createEquipmentOptionForModel(modelId, data)` (creates `equipment_option` row AND `model_equipment_option` association in a transaction), `getEquipmentOptionById(id)`, `getEquipmentOptionsForModel(modelId)` (joins through `model_equipment_option`, ordered by name asc, includes `isDefault` flag), `updateEquipmentOption(id, data)`, `removeEquipmentOptionFromModel(modelId, equipmentOptionId)` (deletes association row, returns `DeleteResult`); import `DeleteResult` from `@/data/repo/unit-repository`
-  - [ ] 3.2 Add `setDefaultEquipment(modelId, equipmentOptionId)` — in a transaction: clear `is_default` on all associations for this model, then set `is_default = 1` on the specified association
-  - [ ] 3.3 Add `clearDefaultEquipment(modelId)` — sets `is_default = 0` on all associations for this model
-- [ ] Task 4: Create EquipmentOptionForm class (AC: #2, #3)
-  - [ ] 4.1 Create `src/form/EquipmentOptionForm.ts` following the ModelForm pattern — constructor takes `modelId: number` (required) and optional `equipmentOptionId?: number`; when `equipmentOptionId` is provided, loads existing data via `getEquipmentOptionById` and verifies the equipment option is associated with the given model (ownership check via join table query)
-  - [ ] 4.2 Implement `getFields()` (name, range, attacks, skill, strength, armorPiercing, damageMin, damageMax), `getValue()`, `getErrors()`, `handleForm(data)`, `isEditMode()`, `exists()`, `getModelId()`
-  - [ ] 4.3 `handleForm` validates with `equipmentOptionSchema`, then calls `createEquipmentOptionForModel` or `updateEquipmentOption` depending on mode
-  - [ ] 4.4 Create `src/form/EquipmentOptionForm.test.ts` — test create mode, edit mode (loads data), edit mode with unassociated equipment option (exists=false), handleForm create, handleForm edit, validation failure
-- [ ] Task 5: Create equipment option admin form component and route pages (AC: #2, #3, #4)
-  - [ ] 5.1 Create `src/components/EquipmentOptionAdminForm.astro` — renders all equipment option form fields (name text input, range/attacks/skill/strength/armorPiercing/damageMin/damageMax number inputs) using `Field.astro` and `Button.astro`, receives `csrfToken`, `equipmentOptionForm`, `submitLabel` props; number inputs use `type="number"` with appropriate `min` attributes
-  - [ ] 5.2 Create `src/pages/admin/units/[unitId]/models/[modelId]/equipment/new.astro` — same-page form handling: GET renders empty form, POST validates CSRF → calls `equipmentOptionForm.handleForm(data)` → redirect to model edit page on success. Return 404 if unit or model doesn't exist or model doesn't belong to unit.
-  - [ ] 5.3 Create `src/pages/admin/units/[unitId]/models/[modelId]/equipment/[equipmentId]/edit.astro` — same-page form handling: GET renders pre-populated form, POST handles edit (validate CSRF → handleForm → redirect) and remove (validate CSRF → `removeEquipmentOptionFromModel` → redirect). Return 404 if unit, model, or equipment option doesn't exist or ownership doesn't match. Remove uses `confirm()` dialog via `onsubmit` attribute.
-- [ ] Task 6: Add equipment options section and default management to model edit page (AC: #1, #5, #6)
-  - [ ] 6.1 Modify `src/pages/admin/units/[unitId]/models/[modelId]/edit.astro` — below the model form and delete section, add an "Equipment Options" section: render a single `<table>` with column headers (Name, Range, A, BS/WS, S, AP, D, Actions) and one row per equipment option. D column displays `damageMin–damageMax`. Default row appears first. Default row name shows "(Default)" label. Actions column contains "Edit" link and "Set as Default" form for non-default rows. Include an "Add Equipment Option" link below the table. Use `getEquipmentOptionsForModel(modelId)`. (AC: #7)
-  - [ ] 6.2 Handle `action=set-default` in the model edit page POST handler: validate CSRF → read `equipmentId` from form data → call `setDefaultEquipment(modelId, equipmentId)` → redirect to model edit page
-  - [ ] 6.3 Show prompt text "No equipment options yet." when empty, and "No default selected." when equipment options exist but none is designated as default
+- [x] Task 1: Add `equipment_option` and `model_equipment_option` tables to schema, generate migration (AC: #1)
+  - [x] 1.1 Add `equipment_option` table to `src/data/orm/schema.ts` with columns: `id` (PK auto-increment), `name` (text, not null), `range` (integer, not null, default 0), `attacks` (integer, not null), `skill` (integer, not null), `strength` (integer, not null), `armorPiercing` (integer `armor_piercing`, not null, default 0), `damageMin` (integer `damage_min`, not null, default 1), `damageMax` (integer `damage_max`, not null, default 1), `created_at` (text, not null, default `datetime('now')`)
+  - [x] 1.2 Add `model_equipment_option` join table to `src/data/orm/schema.ts` with columns: `modelId` (integer FK to `model.id`, `onDelete: "cascade"`, not null), `equipmentOptionId` (integer FK to `equipment_option.id`, `onDelete: "cascade"`, not null), `isDefault` (integer, not null, default 0); composite primary key on (`modelId`, `equipmentOptionId`)
+  - [x] 1.3 Run `npm run generate` to create a new Drizzle migration
+  - [x] 1.4 Verify migration SQL: `model_equipment_option` has CASCADE on both FKs, composite PK, and `is_default` column with default 0
+  - [x] 1.5 Run `npm run migrate` to apply the migration
+- [x] Task 2: Create equipment option Zod validation schema (AC: #2)
+  - [x] 2.1 Create `src/data/validation/equipment-option.ts` with `equipmentOptionSchema`: `name` (trimmed string, `.trim().min(1)`), `range` (coerced integer, min 0, default 0), `attacks` (coerced integer, min 1), `skill` (coerced integer, min 1), `strength` (coerced integer, min 1), `armorPiercing` (coerced integer, min 0, default 0), `damageMin` (coerced integer, min 1, default 1), `damageMax` (coerced integer, min 1, default 1); add `.refine()` to enforce `damageMax >= damageMin`
+  - [x] 2.2 Create `src/data/validation/equipment-option.test.ts` — test valid input with all fields, valid input with defaults only, missing required fields, whitespace-only name, damageMax < damageMin rejection, negative values rejected
+- [x] Task 3: Create equipment option repository (AC: #2, #3, #4, #5)
+  - [x] 3.1 Create `src/data/repo/equipment-option-repository.ts` with functions: `createEquipmentOptionForModel(modelId, data)` (creates `equipment_option` row AND `model_equipment_option` association in a transaction), `getEquipmentOptionById(id)`, `getEquipmentOptionsForModel(modelId)` (joins through `model_equipment_option`, ordered by name asc, includes `isDefault` flag), `updateEquipmentOption(id, data)`, `removeEquipmentOptionFromModel(modelId, equipmentOptionId)` (deletes association row, returns `DeleteResult`); import `DeleteResult` from `@/data/repo/unit-repository`
+  - [x] 3.2 Add `setDefaultEquipment(modelId, equipmentOptionId)` — sets `is_default = 1` on the specified association row
+  - [x] 3.3 Add `unsetDefaultEquipment(modelId, equipmentOptionId)` — sets `is_default = 0` on the specified association row
+- [x] Task 4: Create EquipmentOptionForm class (AC: #2, #3)
+  - [x] 4.1 Create `src/form/EquipmentOptionForm.ts` following the ModelForm pattern — constructor takes `modelId: number` (required) and optional `equipmentOptionId?: number`; when `equipmentOptionId` is provided, loads existing data via `getEquipmentOptionById` and verifies the equipment option is associated with the given model (ownership check via join table query)
+  - [x] 4.2 Implement `getFields()` (name, range, attacks, skill, strength, armorPiercing, damageMin, damageMax), `getValue()`, `getErrors()`, `handleForm(data)`, `isEditMode()`, `exists()`, `getModelId()`
+  - [x] 4.3 `handleForm` validates with `equipmentOptionSchema`, then calls `createEquipmentOptionForModel` or `updateEquipmentOption` depending on mode
+  - [x] 4.4 Create `src/form/EquipmentOptionForm.test.ts` — test create mode, edit mode (loads data), edit mode with unassociated equipment option (exists=false), handleForm create, handleForm edit, validation failure
+- [x] Task 5: Create equipment option admin form component and route pages (AC: #2, #3, #4)
+  - [x] 5.1 Create `src/components/EquipmentOptionAdminForm.astro` — renders all equipment option form fields (name text input, range/attacks/skill/strength/armorPiercing/damageMin/damageMax number inputs) using `Field.astro` and `Button.astro`, receives `csrfToken`, `equipmentOptionForm`, `submitLabel` props; number inputs use `type="number"` with appropriate `min` attributes
+  - [x] 5.2 Create `src/pages/admin/units/[unitId]/models/[modelId]/equipment/new.astro` — same-page form handling: GET renders empty form, POST validates CSRF → calls `equipmentOptionForm.handleForm(data)` → redirect to model edit page on success. Return 404 if unit or model doesn't exist or model doesn't belong to unit.
+  - [x] 5.3 Create `src/pages/admin/units/[unitId]/models/[modelId]/equipment/[equipmentId]/edit.astro` — same-page form handling: GET renders pre-populated form, POST handles edit (validate CSRF → handleForm → redirect) and remove (validate CSRF → `removeEquipmentOptionFromModel` → redirect). Return 404 if unit, model, or equipment option doesn't exist or ownership doesn't match. Remove uses `confirm()` dialog via `onsubmit` attribute.
+- [x] Task 6: Add equipment options section and default management to model edit page (AC: #1, #5, #6)
+  - [x] 6.1 Modify `src/pages/admin/units/[unitId]/models/[modelId]/edit.astro` — below the model form and delete section, add an "Equipment Options" section: render a single `<table>` with column headers (Name, Range, A, BS/WS, S, AP, D, Actions) and one row per equipment option. D column displays `damageMin–damageMax`. Default row appears first. Default row name shows "(Default)" label. Actions column contains "Edit" link and "Set as Default" form for non-default rows. Include an "Add Equipment Option" link below the table. Use `getEquipmentOptionsForModel(modelId)`. (AC: #7)
+  - [x] 6.2 Handle `action=set-default` in the model edit page POST handler: validate CSRF → read `equipmentId` from form data → call `setDefaultEquipment(modelId, equipmentId)` → redirect to model edit page
+  - [x] 6.3 Show prompt text "No equipment options yet." when empty, and "No default selected." when equipment options exist but none is designated as default
 
 ## Dev Notes
 
@@ -115,7 +123,7 @@ So that players can see all available equipment choices and which is the default
 - Deleting an equipment option cascades to `model_equipment_option` rows (removes all associations)
 - No `default_equipment_id` column on the model table — the default is tracked in the join table
 
-**Default enforcement:** Only one equipment option per model should have `is_default = 1`. The `setDefaultEquipment` function enforces this by clearing all defaults for the model before setting the new one, wrapped in a transaction.
+**Default enforcement:** Multiple equipment options per model may have `is_default = 1`. The `setDefaultEquipment` and `unsetDefaultEquipment` functions toggle the flag on individual association rows independently.
 
 ### Schema Definition in Drizzle
 
@@ -175,8 +183,8 @@ Functions needed:
 - `getEquipmentOptionsForModel(modelId: number)` — joins `model_equipment_option` with `equipment_option`, returns array with `id`, `name`, `range`, `attacks`, `skill`, `strength`, `armorPiercing`, `damageMin`, `damageMax`, `isDefault`, ordered by `isDefault` desc then name asc (default option first)
 - `updateEquipmentOption(id: number, data: EquipmentOptionData)` — updates the `equipment_option` row
 - `removeEquipmentOptionFromModel(modelId: number, equipmentOptionId: number): DeleteResult` — deletes the association row from `model_equipment_option`
-- `setDefaultEquipment(modelId: number, equipmentOptionId: number)` — in a transaction: set `is_default = 0` for all associations of this model, then set `is_default = 1` for the specified association
-- `clearDefaultEquipment(modelId: number)` — set `is_default = 0` for all associations of this model
+- `setDefaultEquipment(modelId: number, equipmentOptionId: number)` — sets `is_default = 1` on the specified association row
+- `unsetDefaultEquipment(modelId: number, equipmentOptionId: number)` — sets `is_default = 0` on the specified association row
 - `isEquipmentOptionAssociatedWithModel(modelId: number, equipmentOptionId: number): boolean` — checks if the association exists (used for ownership validation in EquipmentOptionForm)
 
 Import `DeleteResult` from `@/data/repo/unit-repository`.
@@ -321,7 +329,7 @@ Follows the existing delete pattern from Stories 1.3 and 1.4:
 - Put DB queries directly in `.astro` page files
 - Use relative imports — always use `@/` alias
 - Add `default_equipment_id` FK column on the model table — the default is tracked in `model_equipment_option.is_default`
-- Allow multiple `is_default = 1` rows for the same model — always clear existing defaults in a transaction before setting a new one
+- Enforcing single-default constraint — multiple defaults per model are allowed by design
 
 ### Existing Code to Build On
 
@@ -417,10 +425,36 @@ drizzle/
 
 ### Agent Model Used
 
-{{agent_model_name_version}}
+claude-4.6-opus-high-thinking
 
 ### Debug Log References
 
 ### Completion Notes List
 
+- Implemented many-to-many relationship between models and equipment options via `model_equipment_option` join table with composite PK and `is_default` flag
+- Equipment option has full stat block: name, range, attacks, skill, strength, armor_piercing, damage_min, damage_max
+- Zod validation uses `z.coerce.number()` for form input coercion, with `.refine()` enforcing damageMax >= damageMin
+- Repository uses transaction for `createEquipmentOptionForModel` (insert + association); `setDefaultEquipment`/`unsetDefaultEquipment` toggle individual rows (multiple defaults allowed)
+- Added `getUnassociatedEquipmentOptions` and `associateEquipmentOptionWithModel` for adding existing equipment options to a model
+- Unit edit page models list shows equipment option count and default names via `getEquipmentOptionSummaryForModel`
+- `getEquipmentOptionsForModel` orders by `isDefault` desc then name asc (default first)
+- EquipmentOptionForm ownership check queries the join table via `isEquipmentOptionAssociatedWithModel`
+- Model edit page extended with equipment options table (Name, Range, A, BS/WS, S, AP, D, Actions columns), inline "Set as Default" forms, and empty/no-default states
+- All 94 tests pass (14 validation + 9 form + 71 existing)
+
 ### File List
+
+- src/data/orm/schema.ts (modified — added equipmentOption + modelEquipmentOption tables)
+- src/data/validation/equipment-option.ts (created — Zod schema with stat fields + damageMax >= damageMin refine)
+- src/data/validation/equipment-option.test.ts (created — 14 validation tests)
+- src/data/repo/equipment-option-repository.ts (created — CRUD + default management + association check)
+- src/form/EquipmentOptionForm.ts (created — form class with ownership validation via join table)
+- src/form/EquipmentOptionForm.test.ts (created — 9 form tests)
+- src/components/EquipmentOptionAdminForm.astro (created — form component for equipment option fields)
+- src/pages/admin/units/[unitId]/models/[modelId]/equipment/new.astro (created — add equipment option page)
+- src/pages/admin/units/[unitId]/models/[modelId]/equipment/[equipmentId]/edit.astro (created — edit/remove equipment option page)
+- src/pages/admin/units/[unitId]/models/[modelId]/edit.astro (modified — added equipment options section + set-default/unset-default handler)
+- src/pages/admin/units/[unitId]/edit.astro (modified — models list now shows equipment option count and default names)
+- drizzle/0002_rapid_red_wolf.sql (generated — equipment_option + model_equipment_option migration)
+- drizzle/meta/_journal.json (modified — migration journal entry)
+- drizzle/meta/0002_snapshot.json (generated — schema snapshot)

@@ -45,7 +45,7 @@ development_status:
   1-2-create-new-unit: done
   1-3-edit-and-delete-units: done
   1-4-model-management: done
-  1-5-equipment-option-management: ready-for-dev
+  1-5-equipment-option-management: review
   epic-1-retrospective: optional
 
   epic-2: backlog

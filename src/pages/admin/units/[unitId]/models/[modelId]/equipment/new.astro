@@ -1,0 +1,61 @@
+---
+import { EquipmentOptionForm } from "@/form/EquipmentOptionForm";
+import { validateCsrfToken } from "@/auth/csrf";
+import { getUnitById } from "@/data/repo/unit-repository";
+import { getModelById } from "@/data/repo/model-repository";
+import EquipmentOptionAdminForm from "@/components/EquipmentOptionAdminForm.astro";
+
+const session = Astro.locals.session!;
+const csrfToken = session.csrfToken;
+
+const unitId = Number(Astro.params.unitId);
+const modelId = Number(Astro.params.modelId);
+if (isNaN(unitId) || isNaN(modelId)) {
+  return new Response(null, { status: 404 });
+}
+
+const unit = getUnitById(unitId);
+if (!unit) {
+  return new Response(null, { status: 404 });
+}
+
+const model = getModelById(modelId);
+if (!model || model.unitId !== unitId) {
+  return new Response(null, { status: 404 });
+}
+
+const equipmentOptionForm = new EquipmentOptionForm(modelId);
+
+if (Astro.request.method === "POST") {
+  const data = await Astro.request.formData();
+  const submittedCsrf = data.get("_csrf")?.toString() ?? "";
+
+  if (!validateCsrfToken(csrfToken, submittedCsrf)) {
+    equipmentOptionForm.getErrors().form = "Invalid form submission. Please try again.";
+  } else if (equipmentOptionForm.handleForm(data)) {
+    return Astro.redirect(`/admin/units/${unitId}/models/${modelId}/edit`);
+  }
+}
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="stylesheet" href="/styles.css" />
+    <title>Add Equipment Option - {model.name} - Admin - aine-program</title>
+  </head>
+  <body>
+    <main class="page">
+      <h1>Add Equipment Option to {model.name}</h1>
+
+      <p><a href={`/admin/units/${unitId}/models/${modelId}/edit`}>&larr; Back to {model.name}</a></p>
+
+      <EquipmentOptionAdminForm
+        csrfToken={csrfToken}
+        equipmentOptionForm={equipmentOptionForm}
+        submitLabel="Create Equipment Option"
+      />
+    </main>
+  </body>
+</html>
