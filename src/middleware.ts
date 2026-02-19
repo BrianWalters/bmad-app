@@ -8,7 +8,9 @@ export const onRequest = defineMiddleware(async (context, next) => {
   const isLoginRoute = pathname === "/admin/login";
 
   if (!isAdminRoute) {
-    return next();
+    const response = await next();
+    response.headers.set("Cache-Control", "public, max-age=0, must-revalidate");
+    return response;
   }
 
   if (isLoginRoute) {
@@ -19,7 +21,9 @@ export const onRequest = defineMiddleware(async (context, next) => {
         context.locals.session = sessionData;
       }
     }
-    return next();
+    const response = await next();
+    response.headers.set("Cache-Control", "no-store");
+    return response;
   }
 
   const cookieValue = context.cookies.get("session_id")?.value;
@@ -34,5 +38,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
   }
 
   context.locals.session = sessionData;
-  return next();
+  const response = await next();
+  response.headers.set("Cache-Control", "no-store");
+  return response;
 });

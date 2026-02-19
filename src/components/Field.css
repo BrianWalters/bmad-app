@@ -1,0 +1,38 @@
+.field {
+  margin-bottom: 1rem;
+}
+
+.field__label {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.field__input,
+.field__textarea,
+.field__select {
+  font-family: inherit;
+  font-size: 1rem;
+  padding: 0.5rem;
+  border: 1px solid var(--color-muted);
+  width: 100%;
+  max-width: 40rem;
+}
+
+.field__textarea {
+  min-height: 6rem;
+  resize: vertical;
+}
+
+.field__input:focus,
+.field__textarea:focus,
+.field__select:focus {
+  outline: 2px solid var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.field__error {
+  color: var(--color-accent);
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}

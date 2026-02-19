@@ -1,0 +1,9 @@
+.admin-form__error {
+  color: var(--color-accent);
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.admin-form--inline {
+  display: inline;
+}
