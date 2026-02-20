@@ -20,5 +20,6 @@
 
 .equipment-options-select__input:focus {
   outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
   border-color: var(--color-accent);
 }

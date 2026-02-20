@@ -1,6 +1,6 @@
 # Story 2.1: Public Base Layout & Global Styles
 
-Status: review
+Status: done
 
 ## Story
 
@@ -331,3 +331,4 @@ claude-4.6-opus-high-thinking
 - src/pages/404.astro (created — not found page using Base layout)
 - src/middleware.ts (modified — added Cache-Control headers for public and admin routes)
 - public/styles.css (modified — stripped BEM blocks, kept reset + :root tokens + base element styles only)
+- e2e/public-layout.spec.ts (created — E2E tests for public layout, skip link, and 404 page)
