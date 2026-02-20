@@ -1,64 +1,20 @@
 ---
 import Base from "@/layouts/Base.astro";
 import Breadcrumb from "@/components/Breadcrumb.astro";
-import { findUnitBySlug, getKeywordsForUnit } from "@/data/repo/unit-repository";
-import { getModelsForUnit } from "@/data/repo/model-repository";
-import { getEquipmentOptionsForModel } from "@/data/repo/equipment-option-repository";
+import { getFullUnitBySlug } from "@/data/repo/unit-repository";
+import { UnitPresenter } from "@/presenters/UnitPresenter";
 import "./UnitDetail.css";
 
 const { slug } = Astro.params;
 
-const unit = findUnitBySlug(slug!);
-if (!unit) {
+const data = getFullUnitBySlug(slug!);
+if (!data) {
   return new Response(null, { status: 404 });
 }
 
-const keywords = getKeywordsForUnit(unit.id);
-const models = getModelsForUnit(unit.id);
-
-const modelsWithEquipment = models.map((m) => ({
-  ...m,
-  equipment: getEquipmentOptionsForModel(m.id),
-}));
-
-interface ModelGroup {
-  name: string;
-  count: number;
-  equipment: (typeof modelsWithEquipment)[0]["equipment"];
-}
-
-function getEquipmentSignature(
-  equipment: (typeof modelsWithEquipment)[0]["equipment"],
-): string {
-  return [...equipment]
-    .sort((a, b) => a.id - b.id)
-    .map((e) => `${e.id}:${e.isDefault}`)
-    .join(",");
-}
-
-const modelGroups: ModelGroup[] = [];
-const seen = new Map<string, number>();
-
-for (const m of modelsWithEquipment) {
-  const sig = `${m.name}|${getEquipmentSignature(m.equipment)}`;
-  const idx = seen.get(sig);
-  if (idx !== undefined) {
-    modelGroups[idx].count++;
-  } else {
-    seen.set(sig, modelGroups.length);
-    modelGroups.push({ name: m.name, count: 1, equipment: m.equipment });
-  }
-}
-
-function formatDamage(damageMin: number, damageMax: number): string {
-  if (damageMin === damageMax) return String(damageMin);
-  if (damageMin === 1 && damageMax > 1) return `D${damageMax}`;
-  return `${damageMin}-${damageMax}`;
-}
-
-function formatAP(armorPiercing: number): string {
-  return armorPiercing === 0 ? "0" : `-${armorPiercing}`;
-}
+const presenter = new UnitPresenter(data);
+const { unit } = presenter;
+const modelGroups = presenter.modelGroups;
 ---
 
 <Base title={`${unit.name} — Army Builder`} description={unit.description ?? undefined}>
@@ -66,8 +22,8 @@ function formatAP(armorPiercing: number): string {
 
   <h1>{unit.name}</h1>
 
-  {keywords.length > 0 && (
-    <p class="unit-detail__keywords">{keywords.join(", ")}</p>
+  {presenter.unit.keywords.length > 0 && (
+    <p class="unit-detail__keywords">{presenter.formattedKeywords}</p>
   )}
 
   <dl class="unit-detail__attributes">
@@ -145,8 +101,8 @@ function formatAP(armorPiercing: number): string {
                       <td>{eq.attacks}</td>
                       <td>{eq.skill}+</td>
                       <td>{eq.strength}</td>
-                      <td>{formatAP(eq.armorPiercing)}</td>
-                      <td>{formatDamage(eq.damageMin, eq.damageMax)}</td>
+                      <td>{presenter.formatAP(eq.armorPiercing)}</td>
+                      <td>{presenter.formatDamage(eq.damageMin, eq.damageMax)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -177,8 +133,8 @@ function formatAP(armorPiercing: number): string {
                       <td>{eq.attacks}</td>
                       <td>{eq.skill}+</td>
                       <td>{eq.strength}</td>
-                      <td>{formatAP(eq.armorPiercing)}</td>
-                      <td>{formatDamage(eq.damageMin, eq.damageMax)}</td>
+                      <td>{presenter.formatAP(eq.armorPiercing)}</td>
+                      <td>{presenter.formatDamage(eq.damageMin, eq.damageMax)}</td>
                     </tr>
                   ))}
                 </tbody>

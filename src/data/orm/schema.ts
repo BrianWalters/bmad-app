@@ -5,7 +5,7 @@ import {
   index,
   primaryKey,
 } from "drizzle-orm/sqlite-core";
-import { sql } from "drizzle-orm";
+import { sql, relations } from "drizzle-orm";
 
 export const adminUser = sqliteTable("admin_user", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -108,4 +108,36 @@ export const unitKeyword = sqliteTable(
       .references(() => keyword.id, { onDelete: "cascade" }),
   },
   (table) => [primaryKey({ columns: [table.unitId, table.keywordId] })],
+);
+
+export const unitRelations = relations(unit, ({ many }) => ({
+  models: many(model),
+  unitKeywords: many(unitKeyword),
+}));
+
+export const modelRelations = relations(model, ({ one, many }) => ({
+  unit: one(unit, { fields: [model.unitId], references: [unit.id] }),
+  modelEquipmentOptions: many(modelEquipmentOption),
+}));
+
+export const unitKeywordRelations = relations(unitKeyword, ({ one }) => ({
+  unit: one(unit, { fields: [unitKeyword.unitId], references: [unit.id] }),
+  keyword: one(keyword, {
+    fields: [unitKeyword.keywordId],
+    references: [keyword.id],
+  }),
+}));
+
+export const modelEquipmentOptionRelations = relations(
+  modelEquipmentOption,
+  ({ one }) => ({
+    model: one(model, {
+      fields: [modelEquipmentOption.modelId],
+      references: [model.id],
+    }),
+    equipmentOption: one(equipmentOption, {
+      fields: [modelEquipmentOption.equipmentOptionId],
+      references: [equipmentOption.id],
+    }),
+  }),
 );

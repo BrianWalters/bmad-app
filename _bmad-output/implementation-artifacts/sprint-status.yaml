@@ -53,8 +53,8 @@ development_status:
   2-2-unit-detail-page: done
   epic-2-retrospective: optional
 
-  epic-3: backlog
-  3-1-unit-index-page: backlog
+  epic-3: in-progress
+  3-1-unit-index-page: ready-for-dev
   epic-3-retrospective: optional
 
   epic-4: backlog

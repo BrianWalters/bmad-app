@@ -375,6 +375,7 @@ E2E tests run against a live Astro server with an isolated in-memory SQLite data
 - `src/data/repo/` — Domain-specific repository modules for read-only data access (one file per domain entity, queries defined inline)
 - `src/data/validation/` — Zod schemas for form validation
 - `src/form/` — CRUD form abstractions (one class per entity) — encapsulate field definitions, FormData parsing, validation orchestration, and save logic so route files stay minimal and form behavior is reusable across create/edit pages
+- `src/presenters/` — Presenter classes that transform Drizzle row objects into display-ready data for templates (one class per entity, e.g., `UnitPresenter.ts`). Presenters are pure logic with no database dependency — they accept raw data and expose computed properties and formatting methods. Must always have co-located unit tests.
 - `src/auth/` — session management, CSRF token logic, auth middleware
 - `src/test/` — shared test utilities for unit and E2E testing, such as fixture factories and E2E seed data
 - `public/` — static assets served as-is
@@ -540,6 +541,9 @@ aine-program/
 │   ├── form/
 │   │   ├── field.ts
 │   │   └── UnitForm.ts
+│   ├── presenters/
+│   │   ├── UnitPresenter.ts
+│   │   └── UnitPresenter.test.ts
 │   ├── test/
 │   │   ├── fixtures.ts
 │   │   └── e2e-seed.ts
@@ -589,6 +593,13 @@ aine-program/
 - Form classes import from `src/data/validation/`, `src/data/repo/`, and `src/data/orm/` as needed
 - Reusable across create and edit pages for the same entity
 - `src/form/field.ts` defines the shared `FormField` interface used by form components
+
+**Presenter Boundary:**
+- `src/presenters/` contains Presenter classes — one per entity (e.g., `UnitPresenter.ts`)
+- Presenters accept Drizzle row objects (and optional related data) in their constructor and expose display-ready computed properties and formatting methods
+- Presenters contain zero database logic — they are pure transformations from data shapes to presentation shapes
+- Pages construct a Presenter in their frontmatter after fetching data, then use it in the template
+- Because Presenters are pure functions of their inputs, they must always have co-located unit tests (no DB mocking required)
 
 **Auth Boundary:**
 - `src/auth/` owns all session and CSRF logic
@@ -662,8 +673,9 @@ Browser Request
                 → src/data/orm/connection.ts (Drizzle instance)
                     → SQLite file (./data/sqlite.db)
         → src/data/repo/*-repository.ts (direct read-only queries for GET)
+        → src/presenters/*.ts (transform Drizzle rows into display-ready data)
     → src/layouts/Base.astro (HTML shell, header, footer)
-        → src/components/*.astro (render UI)
+        → src/components/*.astro (render UI, using Presenter properties)
     → HTML Response to Browser
 ```
 

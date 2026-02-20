@@ -148,3 +148,62 @@ export function isSlugAvailable(slug: string, excludeId?: number): boolean {
     .get();
   return !existing;
 }
+
+export type FullUnit = NonNullable<ReturnType<typeof getFullUnitBySlug>>;
+
+export function getFullUnitBySlug(slug: string) {
+  const result = db.query.unit
+    .findFirst({
+      where: eq(unit.slug, slug),
+      with: {
+        models: {
+          orderBy: (models, { asc }) => [asc(models.name)],
+          with: {
+            modelEquipmentOptions: {
+              with: {
+                equipmentOption: true,
+              },
+            },
+          },
+        },
+        unitKeywords: {
+          with: {
+            keyword: true,
+          },
+        },
+      },
+    })
+    .sync();
+
+  if (!result) return null;
+
+  const { models, unitKeywords, ...unitData } = result;
+
+  return {
+    ...unitData,
+    keywords: unitKeywords.map((uk) => uk.keyword.name),
+    models: models.map((m) => ({
+      id: m.id,
+      unitId: m.unitId,
+      name: m.name,
+      createdAt: m.createdAt,
+      equipment: m.modelEquipmentOptions
+        .map((meo) => ({
+          id: meo.equipmentOption.id,
+          name: meo.equipmentOption.name,
+          range: meo.equipmentOption.range,
+          attacks: meo.equipmentOption.attacks,
+          skill: meo.equipmentOption.skill,
+          strength: meo.equipmentOption.strength,
+          armorPiercing: meo.equipmentOption.armorPiercing,
+          damageMin: meo.equipmentOption.damageMin,
+          damageMax: meo.equipmentOption.damageMax,
+          isDefault: meo.isDefault,
+        }))
+        .sort((a, b) => {
+          if (b.isDefault !== a.isDefault) return b.isDefault - a.isDefault;
+          return a.name.localeCompare(b.name);
+        }),
+    })),
+  };
+}
