@@ -48,13 +48,24 @@ const units = getAllUnits();
         {units.length === 0 ? (
           <p>No units yet. <a href="/admin/units/new">Create one now.</a></p>
         ) : (
-          <ul>
-            {units.map((u) => (
-              <li>
-                <a href={`/admin/units/${u.id}/edit`}>{u.name}</a>
-              </li>
-            ))}
-          </ul>
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>View</th>
+                <th>Edit</th>
+              </tr>
+            </thead>
+            <tbody>
+              {units.map((u) => (
+                <tr>
+                  <td>{u.name}</td>
+                  <td><a href={`/units/${u.slug}`}>View</a></td>
+                  <td><a href={`/admin/units/${u.id}/edit`}>Edit</a></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
       </section>
     </main>

@@ -1,0 +1,196 @@
+---
+import Base from "@/layouts/Base.astro";
+import Breadcrumb from "@/components/Breadcrumb.astro";
+import { findUnitBySlug, getKeywordsForUnit } from "@/data/repo/unit-repository";
+import { getModelsForUnit } from "@/data/repo/model-repository";
+import { getEquipmentOptionsForModel } from "@/data/repo/equipment-option-repository";
+import "./UnitDetail.css";
+
+const { slug } = Astro.params;
+
+const unit = findUnitBySlug(slug!);
+if (!unit) {
+  return new Response(null, { status: 404 });
+}
+
+const keywords = getKeywordsForUnit(unit.id);
+const models = getModelsForUnit(unit.id);
+
+const modelsWithEquipment = models.map((m) => ({
+  ...m,
+  equipment: getEquipmentOptionsForModel(m.id),
+}));
+
+interface ModelGroup {
+  name: string;
+  count: number;
+  equipment: (typeof modelsWithEquipment)[0]["equipment"];
+}
+
+function getEquipmentSignature(
+  equipment: (typeof modelsWithEquipment)[0]["equipment"],
+): string {
+  return [...equipment]
+    .sort((a, b) => a.id - b.id)
+    .map((e) => `${e.id}:${e.isDefault}`)
+    .join(",");
+}
+
+const modelGroups: ModelGroup[] = [];
+const seen = new Map<string, number>();
+
+for (const m of modelsWithEquipment) {
+  const sig = `${m.name}|${getEquipmentSignature(m.equipment)}`;
+  const idx = seen.get(sig);
+  if (idx !== undefined) {
+    modelGroups[idx].count++;
+  } else {
+    seen.set(sig, modelGroups.length);
+    modelGroups.push({ name: m.name, count: 1, equipment: m.equipment });
+  }
+}
+
+function formatDamage(damageMin: number, damageMax: number): string {
+  if (damageMin === damageMax) return String(damageMin);
+  if (damageMin === 1 && damageMax > 1) return `D${damageMax}`;
+  return `${damageMin}-${damageMax}`;
+}
+
+function formatAP(armorPiercing: number): string {
+  return armorPiercing === 0 ? "0" : `-${armorPiercing}`;
+}
+---
+
+<Base title={`${unit.name} — Army Builder`} description={unit.description ?? undefined}>
+  <Breadcrumb items={[{ label: "Home", href: "/" }, { label: unit.name }]} />
+
+  <h1>{unit.name}</h1>
+
+  {keywords.length > 0 && (
+    <p class="unit-detail__keywords">{keywords.join(", ")}</p>
+  )}
+
+  <dl class="unit-detail__attributes">
+    <div>
+      <dt>Movement</dt>
+      <dd>{unit.movement}"</dd>
+    </div>
+    <div>
+      <dt>Toughness</dt>
+      <dd>{unit.toughness}</dd>
+    </div>
+    <div>
+      <dt>Save</dt>
+      <dd>{unit.save}+</dd>
+    </div>
+    <div>
+      <dt>Wounds</dt>
+      <dd>{unit.wounds}</dd>
+    </div>
+    <div>
+      <dt>Leadership</dt>
+      <dd>{unit.leadership}+</dd>
+    </div>
+    <div>
+      <dt>Objective Control</dt>
+      <dd>{unit.objectiveControl}</dd>
+    </div>
+    {unit.invulnerabilitySave !== null && (
+      <div>
+        <dt>Invulnerability Save</dt>
+        <dd>{unit.invulnerabilitySave}+</dd>
+      </div>
+    )}
+  </dl>
+
+  {unit.description && (
+    <details>
+      <summary>Description</summary>
+      <p>{unit.description}</p>
+    </details>
+  )}
+
+  <h2>Models</h2>
+
+  {modelGroups.map((group) => {
+    const ranged = group.equipment.filter((e) => e.range > 0);
+    const melee = group.equipment.filter((e) => e.range === 0);
+    const heading = group.count > 1 ? `${group.count} ${group.name}` : group.name;
+
+    return (
+      <section class="unit-detail__model">
+        <h3>{heading}</h3>
+
+        {ranged.length > 0 && (
+          <>
+            <h4>Ranged Weapons</h4>
+            <div class="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Range</th>
+                    <th>A</th>
+                    <th>BS</th>
+                    <th>S</th>
+                    <th>AP</th>
+                    <th>D</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {ranged.map((eq) => (
+                    <tr class={eq.isDefault ? "unit-detail__equipment--default" : ""}>
+                      <td>{eq.name}{eq.isDefault ? " (Default)" : ""}</td>
+                      <td>{eq.range}"</td>
+                      <td>{eq.attacks}</td>
+                      <td>{eq.skill}+</td>
+                      <td>{eq.strength}</td>
+                      <td>{formatAP(eq.armorPiercing)}</td>
+                      <td>{formatDamage(eq.damageMin, eq.damageMax)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
+
+        {melee.length > 0 && (
+          <>
+            <h4>Melee Weapons</h4>
+            <div class="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>A</th>
+                    <th>WS</th>
+                    <th>S</th>
+                    <th>AP</th>
+                    <th>D</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {melee.map((eq) => (
+                    <tr class={eq.isDefault ? "unit-detail__equipment--default" : ""}>
+                      <td>{eq.name}{eq.isDefault ? " (Default)" : ""}</td>
+                      <td>{eq.attacks}</td>
+                      <td>{eq.skill}+</td>
+                      <td>{eq.strength}</td>
+                      <td>{formatAP(eq.armorPiercing)}</td>
+                      <td>{formatDamage(eq.damageMin, eq.damageMax)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
+
+        {ranged.length === 0 && melee.length === 0 && (
+          <p class="unit-detail__no-equipment">No equipment options</p>
+        )}
+      </section>
+    );
+  })}
+</Base>

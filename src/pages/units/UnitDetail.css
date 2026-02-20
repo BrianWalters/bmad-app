@@ -1,0 +1,46 @@
+.unit-detail__attributes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 2rem;
+  margin: 1rem 0;
+}
+
+.unit-detail__attributes div {
+  display: flex;
+  flex-direction: column;
+}
+
+.unit-detail__attributes dt {
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: var(--color-muted);
+}
+
+.unit-detail__attributes dd {
+  font-size: 1.125rem;
+}
+
+.unit-detail__keywords {
+  color: var(--color-muted);
+  font-size: 0.875rem;
+  margin: 0.5rem 0;
+}
+
+.unit-detail__model {
+  border: 1px solid var(--color-muted);
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.unit-detail__equipment--default td {
+  font-weight: 700;
+}
+
+.unit-detail__no-equipment {
+  color: var(--color-muted);
+  font-style: italic;
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
