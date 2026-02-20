@@ -14,10 +14,10 @@ vi.mock("@/data/orm/connection", () => ({
 }));
 
 const { ModelForm } = await import("@/form/ModelForm");
-const { createUnit } = await import("@/data/repo/unit-repository");
 const { createModel, getModelById } = await import(
   "@/data/repo/model-repository"
 );
+const { insertUnit, resetFixtures } = await import("@/test/fixtures");
 
 function makeFormData(values: Record<string, string>): FormData {
   const fd = new FormData();
@@ -27,25 +27,13 @@ function makeFormData(values: Record<string, string>): FormData {
   return fd;
 }
 
-function createTestUnit() {
-  return createUnit({
-    name: "Test Unit",
-    slug: "test-unit",
-    movement: 6,
-    toughness: 4,
-    save: 3,
-    wounds: 2,
-    leadership: 6,
-    objectiveControl: 2,
-  });
-}
-
 describe("ModelForm", () => {
   beforeEach(() => {
     sqlite = new Database(":memory:");
     sqlite.pragma("foreign_keys = ON");
     testDb = drizzle(sqlite, { schema });
     migrate(testDb, { migrationsFolder: "./drizzle" });
+    resetFixtures();
   });
 
   afterEach(() => {
@@ -72,7 +60,7 @@ describe("ModelForm", () => {
 
   describe("constructor — edit mode", () => {
     it("loads existing model data as form defaults", () => {
-      const unit = createTestUnit();
+      const unit = insertUnit();
       const created = createModel(unit.id, { name: "Phobos" });
 
       const form = new ModelForm(unit.id, created.id);
@@ -89,7 +77,7 @@ describe("ModelForm", () => {
     });
 
     it("sets exists to false when model belongs to a different unit", () => {
-      const unit = createTestUnit();
+      const unit = insertUnit();
       const created = createModel(unit.id, { name: "Phobos" });
 
       const form = new ModelForm(unit.id + 1, created.id);
@@ -100,7 +88,7 @@ describe("ModelForm", () => {
 
   describe("handleForm — create mode", () => {
     it("creates a new model and returns true", () => {
-      const unit = createTestUnit();
+      const unit = insertUnit();
       const form = new ModelForm(unit.id);
       const result = form.handleForm(makeFormData({ name: "Phobos" }));
 
@@ -115,7 +103,7 @@ describe("ModelForm", () => {
 
   describe("handleForm — edit mode", () => {
     it("updates the existing model and returns true", () => {
-      const unit = createTestUnit();
+      const unit = insertUnit();
       const created = createModel(unit.id, { name: "Old Name" });
 
       const form = new ModelForm(unit.id, created.id);
@@ -130,7 +118,7 @@ describe("ModelForm", () => {
 
   describe("handleForm — validation failure", () => {
     it("returns false and populates errors on empty name", () => {
-      const unit = createTestUnit();
+      const unit = insertUnit();
       const form = new ModelForm(unit.id);
       const result = form.handleForm(makeFormData({ name: "" }));
 

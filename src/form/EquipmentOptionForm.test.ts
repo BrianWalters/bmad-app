@@ -14,11 +14,11 @@ vi.mock("@/data/orm/connection", () => ({
 }));
 
 const { EquipmentOptionForm } = await import("@/form/EquipmentOptionForm");
-const { createUnit } = await import("@/data/repo/unit-repository");
 const { createModel } = await import("@/data/repo/model-repository");
 const { createEquipmentOptionForModel, getEquipmentOptionById } = await import(
   "@/data/repo/equipment-option-repository"
 );
+const { insertUnit, resetFixtures } = await import("@/test/fixtures");
 
 function makeFormData(values: Record<string, string>): FormData {
   const fd = new FormData();
@@ -26,19 +26,6 @@ function makeFormData(values: Record<string, string>): FormData {
     fd.set(key, value);
   }
   return fd;
-}
-
-function createTestUnit() {
-  return createUnit({
-    name: "Test Unit",
-    slug: "test-unit",
-    movement: 6,
-    toughness: 4,
-    save: 3,
-    wounds: 2,
-    leadership: 6,
-    objectiveControl: 2,
-  });
 }
 
 const validFormInput = {
@@ -58,6 +45,7 @@ describe("EquipmentOptionForm", () => {
     sqlite.pragma("foreign_keys = ON");
     testDb = drizzle(sqlite, { schema });
     migrate(testDb, { migrationsFolder: "./drizzle" });
+    resetFixtures();
   });
 
   afterEach(() => {
@@ -95,7 +83,7 @@ describe("EquipmentOptionForm", () => {
 
   describe("constructor — edit mode", () => {
     it("loads existing equipment option data as form defaults", () => {
-      const unit = createTestUnit();
+      const unit = insertUnit();
       const model = createModel(unit.id, { name: "Phobos" });
       const option = createEquipmentOptionForModel(model.id, {
         name: "Bolt Rifle",
@@ -128,7 +116,7 @@ describe("EquipmentOptionForm", () => {
     });
 
     it("sets exists to false when equipment option not associated with model", () => {
-      const unit = createTestUnit();
+      const unit = insertUnit();
       const model1 = createModel(unit.id, { name: "Model A" });
       const model2 = createModel(unit.id, { name: "Model B" });
       const option = createEquipmentOptionForModel(model1.id, {
@@ -150,7 +138,7 @@ describe("EquipmentOptionForm", () => {
 
   describe("handleForm — create mode", () => {
     it("creates a new equipment option and association, returns true", () => {
-      const unit = createTestUnit();
+      const unit = insertUnit();
       const model = createModel(unit.id, { name: "Phobos" });
       const form = new EquipmentOptionForm(model.id);
       const result = form.handleForm(makeFormData(validFormInput));
@@ -172,7 +160,7 @@ describe("EquipmentOptionForm", () => {
 
   describe("handleForm — edit mode", () => {
     it("updates the existing equipment option and returns true", () => {
-      const unit = createTestUnit();
+      const unit = insertUnit();
       const model = createModel(unit.id, { name: "Phobos" });
       const option = createEquipmentOptionForModel(model.id, {
         name: "Old Name",
@@ -199,7 +187,7 @@ describe("EquipmentOptionForm", () => {
 
   describe("handleForm — validation failure", () => {
     it("returns false and populates errors on empty name", () => {
-      const unit = createTestUnit();
+      const unit = insertUnit();
       const model = createModel(unit.id, { name: "Phobos" });
       const form = new EquipmentOptionForm(model.id);
       const result = form.handleForm(
@@ -211,7 +199,7 @@ describe("EquipmentOptionForm", () => {
     });
 
     it("returns false and populates errors when damageMax < damageMin", () => {
-      const unit = createTestUnit();
+      const unit = insertUnit();
       const model = createModel(unit.id, { name: "Phobos" });
       const form = new EquipmentOptionForm(model.id);
       const result = form.handleForm(
