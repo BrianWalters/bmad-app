@@ -246,6 +246,10 @@ So that I can keep unit information accurate and remove obsolete units.
 **When** the dialog is dismissed
 **Then** no deletion occurs and the page remains unchanged
 
+**Given** an authenticated admin navigates to `/admin`
+**When** the admin unit list page loads
+**Then** units are displayed in a table with one row per unit, including a link to edit each unit and a link to view the unit on the public-facing `/units/[slug]` route
+
 ### Story 1.4: Model Management
 
 As an admin,

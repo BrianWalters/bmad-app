@@ -4,7 +4,6 @@ import * as schema from "./schema";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import { existsSync, mkdirSync } from "node:fs";
 import { dirname } from "node:path";
-import { seedE2EDatabase } from "@/test/e2e-seed";
 
 const isTestEnv = process.env.NODE_ENV === "test";
 const dbPath = process.env.DATABASE_PATH || "./data/sqlite.db";
@@ -30,5 +29,4 @@ export function runMigrations() {
 
 if (isTestEnv) {
   runMigrations();
-  seedE2EDatabase(db);
 }

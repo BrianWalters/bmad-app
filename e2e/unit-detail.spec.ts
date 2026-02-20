@@ -4,6 +4,10 @@ const SLUG = "e2e-unit-detail-test";
 const SLUG_NO_DESC = "e2e-unit-detail-no-desc";
 
 test.describe("Unit detail page", () => {
+  test.beforeAll(async ({ request }) => {
+    await request.post("/api/fixtures");
+  });
+
   test("renders page with unit name as h1, breadcrumb, attributes in dl, and model sections", async ({
     page,
   }) => {
@@ -128,5 +132,17 @@ test.describe("Unit detail page", () => {
     await page.goto(`/units/${SLUG_NO_DESC}`);
 
     await expect(page.locator("details")).toHaveCount(0);
+  });
+
+  test("displays all equipment options for each model", async ({ page }) => {
+    await page.goto(`/units/${SLUG}`);
+
+    const warriorSection = page.locator(".unit-detail__model", { hasText: "Test Warrior" });
+    await expect(warriorSection.locator("td", { hasText: "E2E Bolter" })).toBeVisible();
+    await expect(warriorSection.locator("td", { hasText: "E2E Chainsword" })).toBeVisible();
+
+    const heavySection = page.locator(".unit-detail__model", { hasText: "Test Heavy" });
+    await expect(heavySection.locator("td", { hasText: "E2E Heavy Bolter" })).toBeVisible();
+    await expect(heavySection.locator("td", { hasText: "E2E Power Fist" })).toBeVisible();
   });
 });

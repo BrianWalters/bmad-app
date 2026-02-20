@@ -306,12 +306,11 @@ cd aine-program && npx astro add node
 
 E2E tests run against a live Astro server with an isolated in-memory SQLite database so tests never touch the development database.
 
-- **Test database isolation:** Set `DATABASE_PATH=:memory:` in the Playwright `webServer.env` configuration. This creates an ephemeral in-memory SQLite database that exists only for the duration of the test run.
+- **Test database isolation:** When `NODE_ENV=test`, the database connection module automatically uses an in-memory SQLite database (`:memory:`), creating an ephemeral database that exists only for the duration of the test run.
 - **Auto-migration on startup:** When `NODE_ENV=test`, the server must auto-run Drizzle migrations at startup so the in-memory database has the correct schema. Implement this by calling `runMigrations()` during server initialization when the test environment is detected.
-- **Test admin seeding:** Because the in-memory database lives inside the server process, data cannot be seeded from an external script. Instead, when `NODE_ENV=test`, the server must auto-seed a test admin user (e.g., username `admin`, password `admin`) immediately after running migrations. This ensures a known admin account is available for E2E login flows.
-- **Test data seeding via HTTP:** Playwright's `globalSetup` script seeds test data (units, models, equipment options) by making HTTP requests to the running server — log in as the test admin, then submit forms through the admin API. This validates the full stack end-to-end, including auth and CSRF flows.
-- **Playwright configuration:** The `webServer` block in `playwright.config.ts` must pass `DATABASE_PATH=:memory:`, `NODE_ENV=test`, and `SESSION_SECRET=test-secret` via its `env` option. The server command remains `npm run preview`.
-- **Test independence:** Each test spec should clean up after itself or operate on unique data to avoid inter-test interference. Use Playwright's `beforeEach`/`afterEach` hooks for test-specific setup when needed. Since the in-memory database resets on every server restart, the full test suite always starts from a clean state.
+- **Test data seeding:** E2E test data is seeded via a test-only API route at `POST /api/fixtures`, which is active only when `NODE_ENV=test` (returns 400 otherwise). By default, the endpoint clears all tables and inserts the standard fixture set from `src/test/e2e-seed.ts`. Passing `?type=empty` clears all tables without seeding, allowing a test suite to start from a blank database and insert only the fixtures it needs using the factory functions in `src/test/fixtures.ts`. Test suites that need data should call this endpoint in their `beforeAll` hook.
+- **Playwright configuration:** The `webServer` block in `playwright.config.ts` must pass `NODE_ENV=test` via its `env` option. The server command is `npm run build && npm run preview`.
+- **Test independence:** The in-memory database resets on every server restart. Each test suite controls its own data by calling `POST /api/fixtures` in `beforeAll` — either seeding the standard set or clearing to empty and inserting suite-specific fixtures. This ensures suites don't depend on execution order or leftover data from other suites.
 
 ### Decision Impact Analysis
 
@@ -377,6 +376,7 @@ E2E tests run against a live Astro server with an isolated in-memory SQLite data
 - `src/data/validation/` — Zod schemas for form validation
 - `src/form/` — CRUD form abstractions (one class per entity) — encapsulate field definitions, FormData parsing, validation orchestration, and save logic so route files stay minimal and form behavior is reusable across create/edit pages
 - `src/auth/` — session management, CSRF token logic, auth middleware
+- `src/test/` — shared test utilities for unit and E2E testing, such as fixture factories and E2E seed data
 - `public/` — static assets served as-is
 - `drizzle/` — generated migration files (committed to version control)
 - `e2e/` — Playwright end-to-end tests (project root)
@@ -389,6 +389,7 @@ E2E tests run against a live Astro server with an isolated in-memory SQLite data
   - `src/data/validation/unit.ts` → `src/data/validation/unit.test.ts`
 - End-to-end tests: **`e2e/` directory in project root**
   - `e2e/search.spec.ts`, `e2e/admin-crud.spec.ts`, `e2e/auth.spec.ts`
+- Shared test utilities: **`src/test/`** — fixture factories, E2E seed functions, and other modules shared across unit and E2E tests
 
 ### Process Patterns
 
@@ -539,6 +540,9 @@ aine-program/
 │   ├── form/
 │   │   ├── field.ts
 │   │   └── UnitForm.ts
+│   ├── test/
+│   │   ├── fixtures.ts
+│   │   └── e2e-seed.ts
 │   ├── layouts/
 │   │   └── Base.astro
 │   ├── pages/

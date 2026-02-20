@@ -1,6 +1,6 @@
 # Story 2.2: Unit Detail Page
 
-Status: review
+Status: done
 
 ## Story
 
@@ -313,16 +313,32 @@ No blocking issues encountered during implementation.
 - Created BEM-based co-located CSS (`UnitDetail.css`) with all rem spacing, no @media queries, no px
 - Fixed Breadcrumb.astro — added missing `.breadcrumb` class to `<nav>` element (deferred from Story 2.1 code review)
 - 404 returned via `new Response(null, { status: 404 })` for non-existent slugs
-- Wrote 10 E2E tests covering all acceptance criteria; tests self-seed data via better-sqlite3 and clean up after
-- All 94 existing unit tests pass (no regressions); all 13 E2E tests pass (3 existing + 10 new); build succeeds
+- Wrote 11 E2E tests covering all acceptance criteria; tests seed data via `POST /api/fixtures` in beforeAll hooks
+- Refactored E2E test infrastructure: created fixture factories (`src/test/fixtures.ts`) and E2E seed module (`src/test/e2e-seed.ts`), added test-only API route at `/api/fixtures`
+- Refactored existing unit tests (`EquipmentOptionForm.test.ts`, `ModelForm.test.ts`) to use fixture factories
+- Upgraded admin dashboard from `<ul>` to `<table>` with View and Edit columns (AC from Story 1.3)
+- Removed test seeding from `connection.ts` to decouple production data layer from test code
+- All 94 existing unit tests pass (no regressions); all 14 E2E tests pass (3 existing + 11 new); build succeeds
+
+### Known Limitations
+
+- **N+1 query pattern:** `getEquipmentOptionsForModel()` is called per model in a `.map()` loop. For a unit with N models this makes N+1 queries. Acceptable for SQLite at current scale. A batch query could be added to the repository layer if this becomes a bottleneck with larger datasets.
 
 ### File List
 
 - `src/pages/units/[slug].astro` — **created** — unit detail page with SSR rendering
 - `src/pages/units/UnitDetail.css` — **created** — BEM co-located styles for detail page
 - `src/components/Breadcrumb.astro` — **modified** — added `class="breadcrumb"` to `<nav>` element
-- `e2e/unit-detail.spec.ts` — **created** — 10 E2E tests for detail page
+- `e2e/unit-detail.spec.ts` — **created** — 11 E2E tests for detail page
+- `playwright.config.ts` — **modified** — updated build command and added `NODE_ENV=test` to webServer env
+- `src/data/orm/connection.ts` — **modified** — added test env detection with in-memory DB and auto-migration; removed test seeding (moved to API route)
+- `src/pages/admin/index.astro` — **modified** — replaced unit `<ul>` with `<table>` adding View and Edit columns
+- `src/pages/api/fixtures.ts` — **created** — test-only API route for E2E data seeding and clearing
+- `src/test/e2e-seed.ts` — **created** — standard E2E fixture seed function
+- `src/test/fixtures.ts` — **created** — test fixture factories for units, models, equipment options, keywords, admin users, sessions
+- `src/form/EquipmentOptionForm.test.ts` — **modified** — migrated to fixture factories
+- `src/form/ModelForm.test.ts` — **modified** — migrated to fixture factories
 
 ## Change Log
 
-- **2026-02-20:** Implemented Story 2.2 — Unit Detail Page. Created SSR detail page at `/units/[slug]` with unit attributes, model sections with grouped models, equipment tables split by ranged/melee, dice notation damage display, AP as negative numbers, breadcrumb navigation, and description in collapsible details element. Fixed Breadcrumb.astro missing `.breadcrumb` class (deferred from Story 2.1 review). Added 10 E2E tests. All 94 unit tests and 13 E2E tests pass.
+- **2026-02-20:** Implemented Story 2.2 — Unit Detail Page. Created SSR detail page at `/units/[slug]` with unit attributes, model sections with grouped models, equipment tables split by ranged/melee, dice notation damage display, AP as negative numbers, breadcrumb navigation, and description in collapsible details element. Fixed Breadcrumb.astro missing `.breadcrumb` class (deferred from Story 2.1 review). Upgraded admin dashboard to table layout with View links. Refactored E2E test infrastructure with fixture factories and test-only seed API. Added 11 E2E tests. All 94 unit tests and 14 E2E tests pass.
