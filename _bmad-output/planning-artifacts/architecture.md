@@ -686,7 +686,7 @@ Browser Request
 **Preview:** `npm run preview` — runs the built server locally
 **Migrations:** When schemas change, run `npm run generate` to create migrations. To apply all migrations and update the database, run `npm run migrate`.
 **Unit tests:** `npx vitest` (watches co-located `.test.ts` files)
-**E2E tests:** `npx playwright test` (runs `e2e/*.spec.ts` against an Astro server with in-memory SQLite — see E2E Testing Strategy above)
+**E2E tests:** `npm run test:e2e` (runs `e2e/*.spec.ts` against an Astro server with in-memory SQLite — see E2E Testing Strategy above)
 **Create admin:** `npx tsx scripts/create-admin.ts` — interactive prompt for username + password, hashes with bcrypt, inserts into DB. This is the ONLY way to create admin users.
 **Docker:** `docker compose up --build` — builds image and starts the app with SQLite volume
 

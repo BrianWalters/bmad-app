@@ -1,0 +1,11 @@
+.unit-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.empty-state {
+  color: var(--color-muted);
+  padding: 1rem 0;
+}

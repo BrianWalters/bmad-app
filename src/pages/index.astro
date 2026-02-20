@@ -1,7 +1,33 @@
 ---
 import Base from "@/layouts/Base.astro";
+import UnitCard from "@/components/UnitCard.astro";
+import { getAllUnits } from "@/data/repo/unit-repository";
+import "./UnitIndex.css";
+
+const units = getAllUnits();
 ---
 
 <Base title="Army Builder" description="Browse and search tabletop wargame units.">
   <h1>Army Builder</h1>
+
+  {units.length > 0 ? (
+    <div class="unit-grid">
+      {units.map((u) => (
+        <UnitCard
+          name={u.name}
+          slug={u.slug}
+          movement={u.movement}
+          toughness={u.toughness}
+          save={u.save}
+          wounds={u.wounds}
+          leadership={u.leadership}
+          objectiveControl={u.objectiveControl}
+          invulnerabilitySave={u.invulnerabilitySave}
+          description={u.description}
+        />
+      ))}
+    </div>
+  ) : (
+    <p class="empty-state">No units yet.</p>
+  )}
 </Base>

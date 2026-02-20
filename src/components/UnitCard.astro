@@ -1,0 +1,39 @@
+---
+import "./UnitCard.css";
+
+interface Props {
+  name: string;
+  slug: string;
+  movement: number;
+  toughness: number;
+  save: number;
+  wounds: number;
+  leadership: number;
+  objectiveControl: number;
+  invulnerabilitySave: number | null;
+  description: string | null;
+}
+
+const {
+  name,
+  slug,
+  movement,
+  toughness,
+  save,
+  wounds,
+  leadership,
+  objectiveControl,
+  invulnerabilitySave,
+  description,
+} = Astro.props;
+
+const stats = `M:${movement}" T:${toughness} SV:${save}+ W:${wounds} LD:${leadership}+ OC:${objectiveControl}`;
+---
+
+<article class="unit-card">
+  <h2 class="unit-card__name">
+    <a href={`/units/${slug}`}>{name}</a>
+  </h2>
+  <div class="unit-card__stats">{stats}</div>
+  {description && <p class="unit-card__description">{description}</p>}
+</article>
