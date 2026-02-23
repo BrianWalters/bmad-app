@@ -1,0 +1,15 @@
+services:
+  app:
+    build: .
+    ports:
+      - "4000:4000"
+    environment:
+      - SESSION_SECRET=secret
+      - DATABASE_PATH=/app/data/sqlite.db
+      - NODE_ENV=production
+    volumes:
+      - sqlite-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  sqlite-data:

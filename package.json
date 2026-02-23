@@ -11,8 +11,8 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "generate": "drizzle-kit generate",
-    "migrate": "tsx --env-file=.env scripts/migrate.ts",
-    "create-admin": "tsx --env-file=.env scripts/create-admin.ts"
+    "migrate": "tsx --env-file-if-exists=.env scripts/migrate.ts",
+    "create-admin": "tsx --env-file-if-exists=.env scripts/create-admin.ts"
   },
   "dependencies": {
     "@astrojs/node": "^9.5.4",

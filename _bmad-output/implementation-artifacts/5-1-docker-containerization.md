@@ -34,36 +34,36 @@ So that the app runs reliably in production and admin changes are immediately vi
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Modify `connection.ts` to auto-run migrations on startup (AC: #1, #2, #3)
-  - [ ] 1.1 Remove the `if (isTestEnv)` guard around `runMigrations()` so migrations run on every server startup (idempotent — Drizzle skips already-applied migrations)
-  - [ ] 1.2 Verify dev server still starts correctly with auto-migration
-  - [ ] 1.3 Verify all existing tests still pass (`npm run test`)
+- [x] Task 1: Modify `connection.ts` to auto-run migrations on startup (AC: #1, #2, #3)
+  - [x] 1.1 Remove the `if (isTestEnv)` guard around `runMigrations()` so migrations run on every server startup (idempotent — Drizzle skips already-applied migrations)
+  - [x] 1.2 Verify dev server still starts correctly with auto-migration
+  - [x] 1.3 Verify all existing tests still pass (`npm run test`)
 
-- [ ] Task 2: Create `.dockerignore` (AC: #5)
-  - [ ] 2.1 Exclude `node_modules/`, `dist/`, `data/`, `.env`, `.git/`, `.gitignore`, `.astro/`, `.idea/`, `e2e/`, `_bmad*/`, `*.md`
+- [x] Task 2: Create `.dockerignore` (AC: #5)
+  - [x] 2.1 Exclude `node_modules/`, `dist/`, `data/`, `.env`, `.git/`, `.gitignore`, `.astro/`, `.idea/`, `e2e/`, `_bmad*/`, `*.md`
 
-- [ ] Task 3: Create multi-stage `Dockerfile` (AC: #1, #5)
-  - [ ] 3.1 Stage 1 (`deps`): Node 24 Alpine + build tools (`python3`, `make`, `g++`) for native deps (bcrypt, better-sqlite3). Copy `package.json` + `package-lock.json`, run `npm ci`
-  - [ ] 3.2 Stage 2 (`builder`): Extend `deps`, copy source, run `npm run build`
-  - [ ] 3.3 Stage 3 (`prod-deps`): Clean Node 24 Alpine + build tools, copy `package.json` + `package-lock.json`, run `npm ci --omit=dev`
-  - [ ] 3.4 Stage 4 (`production`): Clean Node 24 Alpine (no build tools). Copy `node_modules` from `prod-deps`, `dist/` from `builder`, `drizzle/` from `builder`, `package.json`
-  - [ ] 3.5 Set `HOST=0.0.0.0`, `PORT=4000`, `NODE_ENV=production`. `EXPOSE 4000`
-  - [ ] 3.6 CMD: `node dist/server/entry.mjs`
+- [x] Task 3: Create multi-stage `Dockerfile` (AC: #1, #5)
+  - [x] 3.1 Stage 1 (`deps`): Node 24 Alpine + build tools (`python3`, `make`, `g++`) for native deps (bcrypt, better-sqlite3). Copy `package.json` + `package-lock.json`, run `npm ci`
+  - [x] 3.2 Stage 2 (`builder`): Extend `deps`, copy source, run `npm run build`
+  - [x] 3.3 Stage 3 (`prod-deps`): Clean Node 24 Alpine + build tools, copy `package.json` + `package-lock.json`, run `npm ci --omit=dev`
+  - [x] 3.4 Stage 4 (`production`): Clean Node 24 Alpine (no build tools). Copy `node_modules` from `prod-deps`, `dist/` from `builder`, `drizzle/` from `builder`, `package.json`
+  - [x] 3.5 Set `HOST=0.0.0.0`, `PORT=4000`, `NODE_ENV=production`. `EXPOSE 4000`
+  - [x] 3.6 CMD: `node dist/server/entry.mjs`
 
-- [ ] Task 4: Create `docker-compose.yml` (AC: #1, #2, #3)
-  - [ ] 4.1 Single service `app` with `build: .`
-  - [ ] 4.2 Port mapping: `4000:4000`
-  - [ ] 4.3 Named volume `sqlite-data` mapped to `/app/data` for SQLite persistence
-  - [ ] 4.4 Environment: `SESSION_SECRET`, `DATABASE_PATH=/app/data/sqlite.db`, `NODE_ENV=production`
-  - [ ] 4.5 Restart policy: `unless-stopped`
+- [x] Task 4: Create `docker-compose.yml` (AC: #1, #2, #3)
+  - [x] 4.1 Single service `app` with `build: .`
+  - [x] 4.2 Port mapping: `4000:4000`
+  - [x] 4.3 Named volume `sqlite-data` mapped to `/app/data` for SQLite persistence
+  - [x] 4.4 Environment: `SESSION_SECRET`, `DATABASE_PATH=/app/data/sqlite.db`, `NODE_ENV=production`
+  - [x] 4.5 Restart policy: `unless-stopped`
 
 - [ ] Task 5: Verify Docker build and operation (AC: all)
-  - [ ] 5.1 `docker compose up` builds and starts successfully
-  - [ ] 5.2 App accessible at `http://localhost:4000`
-  - [ ] 5.3 Admin login works, can create/edit units, changes visible on public pages
-  - [ ] 5.4 Data persists after `docker compose down && docker compose up`
-  - [ ] 5.5 Inspect production image: no dev dependencies, no source files
-  - [ ] 5.6 All existing tests still pass (`npm run test`, `npm run test:e2e`)
+  - [ ] 5.1 `docker compose up` builds and starts successfully *(requires Docker — manual verification needed)*
+  - [ ] 5.2 App accessible at `http://localhost:4000` *(requires Docker — manual verification needed)*
+  - [ ] 5.3 Admin login works, can create/edit units, changes visible on public pages *(requires Docker — manual verification needed)*
+  - [ ] 5.4 Data persists after `docker compose down && docker compose up` *(requires Docker — manual verification needed)*
+  - [ ] 5.5 Inspect production image: no dev dependencies, no source files *(requires Docker — manual verification needed)*
+  - [x] 5.6 All existing tests still pass (`npm run test`, `npm run test:e2e`)
 
 ## Dev Notes
 
@@ -318,12 +318,27 @@ Alignment with unified project structure:
 
 ### Agent Model Used
 
-{{agent_model_name_version}}
+Claude claude-4.6-opus (Anthropic)
 
 ### Debug Log References
 
 ### Completion Notes List
 
+- ✅ Task 1: Removed `if (isTestEnv)` guard around `runMigrations()` in `connection.ts`. Migrations now run unconditionally on every server startup. Build succeeds, all 129 unit tests pass.
+- ✅ Task 2: Created `.dockerignore` excluding dev artifacts, test files, documentation, and local data from Docker build context. `drizzle/` intentionally NOT excluded.
+- ✅ Task 3: Created 4-stage `Dockerfile` — `deps` (full install + build tools), `builder` (Astro build), `prod-deps` (production-only install + build tools for native deps), `production` (clean Alpine with only dist/, drizzle/, node_modules/, package.json).
+- ✅ Task 4: Created `docker-compose.yml` with single `app` service, port 4000, named volume `sqlite-data` for persistence, environment variables, and `unless-stopped` restart policy.
+- ⚠️ Task 5: Docker is not installed in development environment. Subtask 5.6 verified — all 129 unit tests and 32 E2E tests pass. Subtasks 5.1–5.5 require manual Docker verification by the user.
+
 ### Change Log
 
+- 2026-02-23: Implemented Docker containerization — modified `connection.ts` for unconditional migrations, created `.dockerignore`, multi-stage `Dockerfile`, and `docker-compose.yml`. All 129 unit + 32 E2E tests pass. Docker verification subtasks (5.1–5.5) pending manual verification (Docker not installed in dev environment).
+
 ### File List
+
+- `src/data/orm/connection.ts` (modified)
+- `.dockerignore` (created)
+- `Dockerfile` (created)
+- `docker-compose.yml` (created)
+- `_bmad-output/implementation-artifacts/5-1-docker-containerization.md` (modified)
+- `_bmad-output/implementation-artifacts/sprint-status.yaml` (modified)

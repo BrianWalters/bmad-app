@@ -27,6 +27,4 @@ export function runMigrations() {
   migrate(db, { migrationsFolder: "./drizzle" });
 }
 
-if (isTestEnv) {
-  runMigrations();
-}
+runMigrations();

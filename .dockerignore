@@ -1,0 +1,13 @@
+node_modules
+dist
+dist-scripts
+data
+.env
+.git
+.gitignore
+.astro
+.idea
+e2e
+_bmad*
+_bmad-output
+*.md

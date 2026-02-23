@@ -6,7 +6,7 @@ import { drizzle } from "drizzle-orm/better-sqlite3";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import { existsSync, mkdirSync } from "node:fs";
 import { dirname } from "node:path";
-import { adminUser } from "../src/data/orm/schema";
+import { adminUser } from "@/data/orm/schema.ts";
 
 const BCRYPT_SALT_ROUNDS = 12;
 const dbPath = process.env.DATABASE_PATH || "./data/sqlite.db";
