@@ -9,6 +9,7 @@
     "astro": "astro",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "generate": "drizzle-kit generate",
     "migrate": "tsx --env-file-if-exists=.env scripts/migrate.ts",
@@ -26,6 +27,7 @@
     "@playwright/test": "^1.58.2",
     "@types/bcrypt": "^6.0.0",
     "@types/better-sqlite3": "^7.6.13",
+    "@vitest/coverage-v8": "^4.0.18",
     "drizzle-kit": "^0.31.9",
     "tsx": "^4.21.0",
     "vitest": "^4.0.18"

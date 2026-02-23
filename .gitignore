@@ -5,3 +5,4 @@ dist-scripts/
 .env
 .astro/
 .idea/
+coverage/

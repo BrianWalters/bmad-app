@@ -4,7 +4,7 @@ import { drizzle } from "drizzle-orm/better-sqlite3";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import * as schema from "../data/orm/schema";
 import type { DrizzleDatabase } from "../data/orm/types";
-import { SessionManager, hashPassword, verifyPassword } from "./session";
+import { SessionManager, hashPassword, verifyPassword, getSessionCookieConfig } from "./session";
 
 describe("password hashing", () => {
   it("hashes and verifies a password", async () => {
@@ -115,5 +115,20 @@ describe("SessionManager", () => {
 
   it("enforces foreign key on user_id", () => {
     expect(() => manager.createSession(999)).toThrow();
+  });
+});
+
+describe("getSessionCookieConfig", () => {
+  it("sets secure flag in production", () => {
+    const config = getSessionCookieConfig(true);
+    expect(config.secure).toBe(true);
+    expect(config.httpOnly).toBe(true);
+    expect(config.sameSite).toBe("strict");
+    expect(config.path).toBe("/");
+  });
+
+  it("disables secure flag outside production", () => {
+    const config = getSessionCookieConfig(false);
+    expect(config.secure).toBe(false);
   });
 });
