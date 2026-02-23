@@ -9,3 +9,7 @@ Run dev server:
 Run with docker:
 
 `docker compose up -d --build`
+
+Generate coverage report:
+
+`npm run test:coverage`
