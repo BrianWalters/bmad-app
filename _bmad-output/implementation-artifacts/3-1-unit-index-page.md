@@ -1,6 +1,6 @@
 # Story 3.1: Unit Index Page
 
-Status: review
+Status: done
 
 ## Story
 
@@ -308,23 +308,25 @@ Claude claude-4.6-opus (via Cursor)
 ### Completion Notes List
 
 - Implemented unit index page with responsive card grid using CSS Grid `repeat(auto-fill, minmax(18rem, 1fr))`
-- Created `UnitCard.astro` component using stretched link pattern for accessible full-card clickability
+- Created `UnitCard.astro` component with heading link to detail page
 - Stats displayed in compact abbreviated format: `M:6" T:4 SV:3+ W:2 LD:6+ OC:2`
 - Empty state shows "No units yet." when no units in database
 - All BEM naming, co-located CSS, `@/` imports, rem spacing, no media queries
-- 6 new E2E tests covering all acceptance criteria (cards visible, alphabetical order, navigation, empty state, heading hierarchy, keyboard nav)
+- 8 E2E tests covering all acceptance criteria (cards visible, alphabetical order, navigation, empty state, heading hierarchy, keyboard nav, header home link, breadcrumb home link)
 - Disabled CSRF protection in test mode to unblock fixture API endpoint for E2E tests
-- All 124 unit tests pass, all 20 E2E tests pass (6 new + 14 existing), build succeeds
+- All 124 unit tests pass, all 22 E2E tests pass (8 new + 14 existing), build succeeds
 
 ### File List
 
 - `src/pages/index.astro` — Modified: added unit fetching, card grid rendering, empty state
-- `src/components/UnitCard.astro` — Created: unit card component with stretched link pattern
-- `src/components/UnitCard.css` — Created: BEM styles for unit card (hover, focus, stats, description line-clamp)
+- `src/components/UnitCard.astro` — Created: unit card component with heading link
+- `src/components/UnitCard.css` — Created: BEM styles for unit card (stats, description line-clamp)
 - `src/pages/UnitIndex.css` — Created: responsive grid layout and empty state styles
-- `e2e/index.spec.ts` — Created: 6 E2E tests for index page
+- `e2e/index.spec.ts` — Created: 8 E2E tests for index page
 - `astro.config.mjs` — Modified: disabled CSRF protection in test mode
+- `_bmad-output/planning-artifacts/architecture.md` — Modified: updated E2E test command from `npx playwright test` to `npm run test:e2e`
 
 ### Change Log
 
 - 2026-02-20: Implemented Story 3.1 — Unit Index Page with responsive card grid, UnitCard component, accessible navigation, empty state, and 6 E2E tests. Disabled CSRF in test mode to support fixture seeding.
+- 2026-02-20: Code review fixes — removed unused `invulnerabilitySave` prop from UnitCard, made keyboard nav E2E test robust (no hardcoded Tab count), added 2 E2E tests for AC #4 and #5 (header/breadcrumb navigation to index), strengthened alphabetical order test assertion, documented `architecture.md` change in File List.

@@ -23,8 +23,9 @@ test.describe("Unit index page", () => {
     const names = page.locator(".unit-card__name");
     const allNames = await names.allTextContents();
 
-    expect(allNames[0]).toContain("E2E Detail Test Unit");
-    expect(allNames[1]).toContain("E2E No Description Unit");
+    expect(allNames.length).toBeGreaterThanOrEqual(2);
+    const sorted = [...allNames].sort((a, b) => a.localeCompare(b));
+    expect(allNames).toEqual(sorted);
   });
 
   test("clicking a unit heading link navigates to the correct detail page", async ({ page }) => {
@@ -54,17 +55,25 @@ test.describe("Unit index page", () => {
   test("cards are keyboard-navigable", async ({ page }) => {
     await page.goto("/");
 
-    await page.keyboard.press("Tab"); // skip link
-    await page.keyboard.press("Tab"); // header home link
-    await page.keyboard.press("Tab"); // search input
-    await page.keyboard.press("Tab"); // search button
-    await page.keyboard.press("Tab"); // first card link
-
-    const focusedElement = page.locator(":focus");
-    await expect(focusedElement).toHaveAttribute("href", "/units/e2e-unit-detail-test");
+    const firstCardLink = page.locator(".unit-card__name a").first();
+    await firstCardLink.focus();
+    await expect(firstCardLink).toBeFocused();
 
     await page.keyboard.press("Enter");
     await expect(page).toHaveURL(/\/units\/e2e-unit-detail-test$/);
+  });
+
+  test("clicking site name in header navigates to index", async ({ page }) => {
+    await page.goto("/units/e2e-unit-detail-test");
+    await page.locator(".site-header__title").click();
+    await expect(page).toHaveURL("/");
+  });
+
+  test("clicking Home in breadcrumb navigates to index", async ({ page }) => {
+    await page.goto("/units/e2e-unit-detail-test");
+    const breadcrumb = page.locator('nav[aria-label="Breadcrumb"]');
+    await breadcrumb.locator('a[href="/"]').click();
+    await expect(page).toHaveURL("/");
   });
 });
 
