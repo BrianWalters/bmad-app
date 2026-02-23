@@ -27,3 +27,12 @@
   font-size: 0.875rem;
   margin-top: 0.25rem;
 }
+
+.search-results-query {
+  margin-top: 0.5rem;
+}
+
+.empty-state {
+  color: var(--color-muted);
+  padding: 1rem 0;
+}

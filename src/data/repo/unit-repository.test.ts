@@ -281,4 +281,18 @@ describe("searchUnitsByName", () => {
 
     expect(names).toEqual(["Alpha Squad", "Mu Squad", "Zephyr Squad"]);
   });
+
+  it("treats % and _ as literal characters, not wildcards", () => {
+    insertUnit({ name: "100% Win Rate", slug: "100-win" });
+    insertUnit({ name: "Alpha_Beta", slug: "alpha-beta" });
+    insertUnit({ name: "Charlie Unit", slug: "charlie" });
+
+    const percentResults = searchUnitsByName("%");
+    expect(percentResults).toHaveLength(1);
+    expect(percentResults[0].name).toBe("100% Win Rate");
+
+    const underscoreResults = searchUnitsByName("_");
+    expect(underscoreResults).toHaveLength(1);
+    expect(underscoreResults[0].name).toBe("Alpha_Beta");
+  });
 });

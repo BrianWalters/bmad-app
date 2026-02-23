@@ -46,6 +46,12 @@ test.describe("Search results page", () => {
     await expect(page).toHaveURL("/");
   });
 
+  test("submitting a whitespace-only search redirects to index", async ({ page }) => {
+    await page.goto("/search?q=%20%20%20");
+
+    await expect(page).toHaveURL("/");
+  });
+
   test("search results page has breadcrumb with Home link back to index", async ({ page }) => {
     await page.goto("/search?q=E2E");
 

@@ -12,11 +12,11 @@ if (!q) {
 const units = searchUnitsByName(q);
 ---
 
-<Base title="Search Results — Army Builder">
+<Base title="Search Results — Army Builder" description="Search results for units in Army Builder.">
   <Breadcrumb items={[{ label: "Home", href: "/" }, { label: "Search Results" }]} />
 
   <h1>Search Results</h1>
-  <p>Showing results for &ldquo;{q}&rdquo;</p>
+  <p class="search-results-query">Showing results for &ldquo;{q}&rdquo;</p>
 
   {units.length > 0 ? (
     <ul class="search-results">

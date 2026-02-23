@@ -1,6 +1,6 @@
 # Story 4.1: Search Bar & Search Results
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -328,12 +328,29 @@ Claude claude-4.6-opus (via Cursor)
 ### Change Log
 
 - 2026-02-23: Implemented Story 4.1 — Search Bar & Search Results. Added `searchUnitsByName` repository function, `/search` page with results and empty state, SearchResults.css BEM styles, 9 E2E tests, 4 unit tests. Fixed Playwright config to use 1 worker for shared DB safety.
+- 2026-02-23: Code review fixes — (H1) Added `.empty-state` CSS to SearchResults.css (was only defined in UnitIndex.css, unstyled on search page). (M1) Escaped SQL LIKE wildcards `%` and `_` in `searchUnitsByName` to prevent functional bugs. (M2) Added `MAX_SEARCH_RESULTS = 50` limit to search query. (M3) Changed `fullyParallel: false` in Playwright config to match `workers: 1` behavior. (L1) Added `description` meta tag to search page. (L2) Added E2E test for whitespace-only search query redirect. (L3) Added `.search-results-query` class with margin for query display text spacing. Added 1 new unit test for wildcard escaping, 1 new E2E test.
+
+### Senior Developer Review (AI)
+
+**Reviewed:** 2026-02-23 by B (AI-assisted)
+**Outcome:** Approved with fixes applied
+**Issues Found:** 1 High, 3 Medium, 3 Low — all fixed
+
+- **H1 (fixed):** `.empty-state` CSS class was defined only in `UnitIndex.css` — unstyled on search page. Added to `SearchResults.css`.
+- **M1 (fixed):** SQL LIKE wildcards (`%`, `_`) not escaped in `searchUnitsByName`. Added escape function with `ESCAPE` clause.
+- **M2 (fixed):** No result limit on search query. Added `MAX_SEARCH_RESULTS = 50` constant with `.limit()`.
+- **M3 (fixed):** `fullyParallel: true` contradicted `workers: 1` in Playwright config. Set `fullyParallel: false`.
+- **L1 (fixed):** Missing `description` meta tag on search page. Added.
+- **L2 (fixed):** No E2E test for whitespace-only query redirect. Added test.
+- **L3 (fixed):** Query display text had no spacing from heading. Added `.search-results-query` class with margin.
+
+**Test results after fixes:** 129 unit tests pass, 32 E2E tests pass, build succeeds.
 
 ### File List
 
-- `src/data/repo/unit-repository.ts` — modified (added `searchUnitsByName` function, added `like` import)
-- `src/data/repo/unit-repository.test.ts` — modified (added 4 unit tests for `searchUnitsByName`)
-- `src/pages/search.astro` — created (search results page)
-- `src/pages/SearchResults.css` — created (search results BEM styles)
-- `e2e/search.spec.ts` — created (9 E2E tests for search functionality)
-- `playwright.config.ts` — modified (added `workers: 1` to fix cross-file DB race condition)
+- `src/data/repo/unit-repository.ts` — modified (added `searchUnitsByName` function with LIKE escape and result limit, replaced `like` import with `sql`)
+- `src/data/repo/unit-repository.test.ts` — modified (added 5 unit tests for `searchUnitsByName` including wildcard escaping)
+- `src/pages/search.astro` — created (search results page with description meta tag and query display class)
+- `src/pages/SearchResults.css` — created (search results BEM styles, `.empty-state`, `.search-results-query`)
+- `e2e/search.spec.ts` — created (10 E2E tests for search functionality including whitespace-only query)
+- `playwright.config.ts` — modified (`workers: 1`, `fullyParallel: false`)

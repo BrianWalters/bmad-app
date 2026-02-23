@@ -1,4 +1,4 @@
-import { eq, asc, and, ne, like } from "drizzle-orm";
+import { eq, asc, and, ne, sql } from "drizzle-orm";
 import { db } from "@/data/orm/connection";
 import { unit, keyword, unitKeyword } from "@/data/orm/schema";
 
@@ -132,12 +132,17 @@ export function getAllUnits() {
   return db.select().from(unit).orderBy(asc(unit.name)).all();
 }
 
+const MAX_SEARCH_RESULTS = 50;
+
 export function searchUnitsByName(query: string) {
+  const escaped = query.replace(/[%_\\]/g, "\\$&");
+  const pattern = `%${escaped}%`;
   return db
     .select()
     .from(unit)
-    .where(like(unit.name, `%${query}%`))
+    .where(sql`${unit.name} LIKE ${pattern} ESCAPE '\\'`)
     .orderBy(asc(unit.name))
+    .limit(MAX_SEARCH_RESULTS)
     .all();
 }
 
