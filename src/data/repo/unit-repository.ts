@@ -1,4 +1,4 @@
-import { eq, asc, and, ne } from "drizzle-orm";
+import { eq, asc, and, ne, like } from "drizzle-orm";
 import { db } from "@/data/orm/connection";
 import { unit, keyword, unitKeyword } from "@/data/orm/schema";
 
@@ -130,6 +130,15 @@ export function deleteUnitById(id: number): DeleteResult {
 
 export function getAllUnits() {
   return db.select().from(unit).orderBy(asc(unit.name)).all();
+}
+
+export function searchUnitsByName(query: string) {
+  return db
+    .select()
+    .from(unit)
+    .where(like(unit.name, `%${query}%`))
+    .orderBy(asc(unit.name))
+    .all();
 }
 
 export function findUnitBySlug(slug: string) {

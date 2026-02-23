@@ -13,7 +13,9 @@ vi.mock("@/data/orm/connection", () => ({
   },
 }));
 
-const { getFullUnitBySlug } = await import("@/data/repo/unit-repository");
+const { getFullUnitBySlug, searchUnitsByName } = await import(
+  "@/data/repo/unit-repository"
+);
 const {
   insertUnit,
   insertModel,
@@ -219,5 +221,64 @@ describe("getFullUnitBySlug", () => {
     const result = getFullUnitBySlug("uid-check")!;
 
     expect(result.models[0].unitId).toBe(u.id);
+  });
+});
+
+describe("searchUnitsByName", () => {
+  beforeEach(() => {
+    sqlite = new Database(":memory:");
+    sqlite.pragma("foreign_keys = ON");
+    testDb = drizzle(sqlite, { schema });
+    migrate(testDb, { migrationsFolder: "./drizzle" });
+    resetFixtures();
+  });
+
+  afterEach(() => {
+    sqlite.close();
+  });
+
+  it("returns matching units for partial name match", () => {
+    insertUnit({ name: "Space Marine", slug: "space-marine" });
+    insertUnit({ name: "Chaos Marine", slug: "chaos-marine" });
+    insertUnit({ name: "Eldar Ranger", slug: "eldar-ranger" });
+
+    const results = searchUnitsByName("Marine");
+
+    expect(results).toHaveLength(2);
+    expect(results.map((r) => r.name)).toEqual([
+      "Chaos Marine",
+      "Space Marine",
+    ]);
+  });
+
+  it("returns empty array for no matches", () => {
+    insertUnit({ name: "Space Marine", slug: "space-marine" });
+
+    const results = searchUnitsByName("ZZZZZ");
+
+    expect(results).toEqual([]);
+  });
+
+  it("search is case-insensitive", () => {
+    insertUnit({ name: "Space Marine", slug: "space-marine" });
+
+    const lower = searchUnitsByName("space");
+    const upper = searchUnitsByName("SPACE");
+    const mixed = searchUnitsByName("sPaCe");
+
+    expect(lower).toHaveLength(1);
+    expect(upper).toHaveLength(1);
+    expect(mixed).toHaveLength(1);
+  });
+
+  it("results are ordered alphabetically by name", () => {
+    insertUnit({ name: "Zephyr Squad", slug: "zephyr" });
+    insertUnit({ name: "Alpha Squad", slug: "alpha" });
+    insertUnit({ name: "Mu Squad", slug: "mu" });
+
+    const results = searchUnitsByName("Squad");
+    const names = results.map((r) => r.name);
+
+    expect(names).toEqual(["Alpha Squad", "Mu Squad", "Zephyr Squad"]);
   });
 });

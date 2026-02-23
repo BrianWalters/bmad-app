@@ -1,0 +1,33 @@
+---
+import Base from "@/layouts/Base.astro";
+import Breadcrumb from "@/components/Breadcrumb.astro";
+import { searchUnitsByName } from "@/data/repo/unit-repository";
+import "./SearchResults.css";
+
+const q = Astro.url.searchParams.get("q")?.trim() ?? "";
+if (!q) {
+  return Astro.redirect("/");
+}
+
+const units = searchUnitsByName(q);
+---
+
+<Base title="Search Results — Army Builder">
+  <Breadcrumb items={[{ label: "Home", href: "/" }, { label: "Search Results" }]} />
+
+  <h1>Search Results</h1>
+  <p>Showing results for &ldquo;{q}&rdquo;</p>
+
+  {units.length > 0 ? (
+    <ul class="search-results">
+      {units.map((u) => (
+        <li class="search-results__item">
+          <a class="search-results__name" href={`/units/${u.slug}`}>{u.name}</a>
+          {u.description && <p class="search-results__description">{u.description}</p>}
+        </li>
+      ))}
+    </ul>
+  ) : (
+    <p class="empty-state">No units found matching &ldquo;{q}&rdquo;.</p>
+  )}
+</Base>
